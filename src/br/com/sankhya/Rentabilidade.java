@@ -1,6 +1,7 @@
 package br.com.sankhya;
 
 import java.math.BigDecimal;
+import java.sql.ResultSet;
 import java.util.Date;
 import java.util.Iterator;
 
@@ -11,6 +12,7 @@ import br.com.sankhya.jape.core.JapeSession.SessionHandle;
 import br.com.sankhya.jape.dao.JdbcWrapper;
 import br.com.sankhya.jape.event.PersistenceEvent;
 import br.com.sankhya.jape.event.TransactionContext;
+import br.com.sankhya.jape.sql.NativeSql;
 import br.com.sankhya.jape.vo.DynamicVO;
 import br.com.sankhya.jape.vo.VOProperty;
 import br.com.sankhya.jape.wrapper.JapeFactory;
@@ -41,25 +43,54 @@ public class Rentabilidade implements EventoProgramavelJava {
 		if (tipolancamento.equals("O")) {
 			SessionHandle hnd = null;
 			JdbcWrapper jdbc = null;
-			
+
 			try {
 				hnd = JapeSession.open();
 				EntityFacade dwfEntityFacade = EntityFacadeFactory.getDWFFacade();
 				jdbc = dwfEntityFacade.getJdbcWrapper();
+
+				NativeSql sql = new NativeSql(jdbc);
+				sql.appendSql("SELECT M.CODTIPOPERORC\r\n");
+				sql.appendSql("FROM AD_MOTIVOABERT M\r\n");
+				sql.appendSql("JOIN TGFTOP T ON T.CODTIPOPER = M.CODTIPOPERORC\r\n");
+				sql.appendSql("WHERE M.CODMOTIVOABERT = 1\r\n"); // Alterar dinâmico
+				sql.appendSql("AND ROWNUM = 1\r\n");
+				sql.appendSql("ORDER BY DHALTER DESC");
 				
+				ResultSet result = sql.executeQuery();
+				BigDecimal codtipoper = null;
 				
+				if (result.next())
+					codtipoper = result.getBigDecimal("CODTIPOPERORC");
+				
+				result.close();
+
+
 				BigDecimal nunotaTemplate = null;
-				// TODO: pegar a TOP da nota.
+				NativeSql sql2 = new NativeSql(jdbc);
+				sql2.appendSql("SELECT NUNOTA ");
+				sql2.appendSql("FROM TGFCAB ");
+				sql2.appendSql("WHERE CODTIPOPER = :CODTIPOPER AND ROWNUM = 1 ");
+				sql2.appendSql("ORDER BY DTNEG DESC");
+				sql2.setNamedParameter("CODTIPOPER", codtipoper);
 				
+				ResultSet result2 = sql.executeQuery();
+				
+				if (result2.next())
+					nunotaTemplate = result2.getBigDecimal("NUNOTA");
+
+				result2.close();
+
 				createNovaNota(jdbc, nunotaTemplate);
-				
-				
+
+
 			} catch (Exception e) {
 				e.printStackTrace();
+				//MGEModelException.throwMe(e);
 			} finally {
 				JapeSession.close(hnd);
 			}
-			
+
 		}
 
 		// TODO Se for um serviço já faturado, vai verificar qual o códgigo de OS
@@ -75,9 +106,11 @@ public class Rentabilidade implements EventoProgramavelJava {
 	}
 
 	public static DynamicVO createNovaNota(JdbcWrapper jdbc, BigDecimal nunotaTemplate) throws Exception {
-
+		boolean teste = true;
 		JapeWrapper cabDAO = JapeFactory.dao(DynamicEntityNames.CABECALHO_NOTA);
-
+		
+		if (teste)
+			throw new Exception("CODOPER: ");
 		final JapeWrapper tipoOperacaoDAO = JapeFactory.dao(DynamicEntityNames.TIPO_OPERACAO);
 
 		if (nunotaTemplate == null)
@@ -99,8 +132,8 @@ public class Rentabilidade implements EventoProgramavelJava {
 		cabTemplate.setProperty("TIPMOV", topDoModelo.asString("TIPMOV"));
 		cabTemplate.setProperty("DTNEG", new Date());
 		cabTemplate.setProperty("DTENTSAI", new Date());
-		cabTemplate.setProperty("CODEMP", BigDecimal.valueOf(2));
-		cabTemplate.setProperty("CODPARC", BigDecimal.valueOf(20));
+		cabTemplate.setProperty("CODEMP", BigDecimal.valueOf(1));
+		cabTemplate.setProperty("CODPARC", BigDecimal.valueOf(158));
 		cabTemplate.setProperty("NUMNOTA", new BigDecimal("0"));
 		cabTemplate.setProperty("VLRNOTA", BigDecimal.valueOf(2.80));
 		cabTemplate.setProperty("OBSERVACAO", "");
