@@ -18,6 +18,8 @@ import br.com.sankhya.jape.vo.VOProperty;
 import br.com.sankhya.jape.wrapper.JapeFactory;
 import br.com.sankhya.jape.wrapper.JapeWrapper;
 import br.com.sankhya.jape.wrapper.fluid.FluidCreateVO;
+import br.com.sankhya.modelcore.auth.AuthenticationInfo;
+import br.com.sankhya.modelcore.comercial.centrais.CACHelper;
 import br.com.sankhya.modelcore.util.DynamicEntityNames;
 import br.com.sankhya.modelcore.util.EntityFacadeFactory;
 
@@ -81,7 +83,11 @@ public class Rentabilidade implements EventoProgramavelJava {
 
 				result2.close();
 
-				createNovaNota(jdbc, nunotaTemplate);
+				DynamicVO newNota = createNovaNota(jdbc, nunotaTemplate);
+				
+				EntityFacade dwfFacade = EntityFacadeFactory.getDWFFacade();
+				AuthenticationInfo authInfo = AuthenticationInfo.getCurrent();
+				CACHelper cacHelper = new CACHelper();
 
 
 			} catch (Exception e) {
