@@ -2,8 +2,9 @@ package br.com.sankhya;
 
 import java.math.BigDecimal;
 import java.sql.ResultSet;
-import java.util.Date;
 import java.util.Iterator;
+
+import com.sankhya.util.TimeUtils;
 
 import br.com.sankhya.extensions.eventoprogramavel.EventoProgramavelJava;
 import br.com.sankhya.jape.EntityFacade;
@@ -18,8 +19,6 @@ import br.com.sankhya.jape.vo.VOProperty;
 import br.com.sankhya.jape.wrapper.JapeFactory;
 import br.com.sankhya.jape.wrapper.JapeWrapper;
 import br.com.sankhya.jape.wrapper.fluid.FluidCreateVO;
-import br.com.sankhya.modelcore.auth.AuthenticationInfo;
-import br.com.sankhya.modelcore.comercial.centrais.CACHelper;
 import br.com.sankhya.modelcore.util.DynamicEntityNames;
 import br.com.sankhya.modelcore.util.EntityFacadeFactory;
 
@@ -46,17 +45,17 @@ public class Rentabilidade implements EventoProgramavelJava {
 			SessionHandle hnd = null;
 			JdbcWrapper jdbc = null;
 
-			try {
+			
 				hnd = JapeSession.open();
 				EntityFacade dwfEntityFacade = EntityFacadeFactory.getDWFFacade();
 				jdbc = dwfEntityFacade.getJdbcWrapper();
 
 				NativeSql sql = new NativeSql(jdbc);
-				sql.appendSql("SELECT M.CODTIPOPERORC\r\n");
-				sql.appendSql("FROM AD_MOTIVOABERT M\r\n");
-				sql.appendSql("JOIN TGFTOP T ON T.CODTIPOPER = M.CODTIPOPERORC\r\n");
-				sql.appendSql("WHERE M.CODMOTIVOABERT = 1\r\n"); // Alterar dinâmico
-				sql.appendSql("AND ROWNUM = 1\r\n");
+				sql.appendSql("SELECT M.CODTIPOPERORC ");
+				sql.appendSql("FROM AD_MOTIVOABERT M ");
+				sql.appendSql("JOIN TGFTOP T ON T.CODTIPOPER = M.CODTIPOPERORC ");
+				sql.appendSql("WHERE M.CODMOTIVOABERT = 1 "); // Alterar dinâmico
+				sql.appendSql("AND ROWNUM = 1 ");
 				sql.appendSql("ORDER BY DHALTER DESC");
 				
 				ResultSet result = sql.executeQuery();
@@ -66,8 +65,7 @@ public class Rentabilidade implements EventoProgramavelJava {
 					codtipoper = result.getBigDecimal("CODTIPOPERORC");
 				
 				result.close();
-
-
+					
 				BigDecimal nunotaTemplate = null;
 				NativeSql sql2 = new NativeSql(jdbc);
 				sql2.appendSql("SELECT NUNOTA ");
@@ -76,26 +74,28 @@ public class Rentabilidade implements EventoProgramavelJava {
 				sql2.appendSql("ORDER BY DTNEG DESC");
 				sql2.setNamedParameter("CODTIPOPER", codtipoper);
 				
-				ResultSet result2 = sql.executeQuery();
+				ResultSet result2 = sql2.executeQuery();
 				
 				if (result2.next())
 					nunotaTemplate = result2.getBigDecimal("NUNOTA");
 
 				result2.close();
-
-				DynamicVO newNota = createNovaNota(jdbc, nunotaTemplate);
 				
-				EntityFacade dwfFacade = EntityFacadeFactory.getDWFFacade();
-				AuthenticationInfo authInfo = AuthenticationInfo.getCurrent();
-				CACHelper cacHelper = new CACHelper();
+				/*if (tipolancamento.equals("O"))
+					throw new Exception("Teste: " + nunotaTemplate);
+*/
+				createNovaNota(jdbc, nunotaTemplate);
+				
+				//cabVO.buildClone();
 
-
-			} catch (Exception e) {
+			/*} catch (Exception e) {
 				e.printStackTrace();
+				e.getMessage();
 				//MGEModelException.throwMe(e);
 			} finally {
 				JapeSession.close(hnd);
-			}
+			}*/
+				JapeSession.close(hnd);
 
 		}
 
@@ -112,11 +112,9 @@ public class Rentabilidade implements EventoProgramavelJava {
 	}
 
 	public static DynamicVO createNovaNota(JdbcWrapper jdbc, BigDecimal nunotaTemplate) throws Exception {
-		boolean teste = true;
+
 		JapeWrapper cabDAO = JapeFactory.dao(DynamicEntityNames.CABECALHO_NOTA);
-		
-		if (teste)
-			throw new Exception("CODOPER: ");
+
 		final JapeWrapper tipoOperacaoDAO = JapeFactory.dao(DynamicEntityNames.TIPO_OPERACAO);
 
 		if (nunotaTemplate == null)
@@ -136,8 +134,8 @@ public class Rentabilidade implements EventoProgramavelJava {
 		cabTemplate.setProperty("DHTIPOPER", null);
 		cabTemplate.setProperty("DHTIPVENDA", null);
 		cabTemplate.setProperty("TIPMOV", topDoModelo.asString("TIPMOV"));
-		cabTemplate.setProperty("DTNEG", new Date());
-		cabTemplate.setProperty("DTENTSAI", new Date());
+		cabTemplate.setProperty("DTNEG", TimeUtils.getNow());
+		cabTemplate.setProperty("DTENTSAI", TimeUtils.getNow());
 		cabTemplate.setProperty("CODEMP", BigDecimal.valueOf(1));
 		cabTemplate.setProperty("CODPARC", BigDecimal.valueOf(158));
 		cabTemplate.setProperty("NUMNOTA", new BigDecimal("0"));

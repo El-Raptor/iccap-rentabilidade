@@ -6,9 +6,10 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="C:/Users/SK-LENOVO/Documents/Java/Bibliotecas/jape-4.6b457.jar"/>
-	<classpathentry kind="lib" path="C:/Users/SK-LENOVO/Documents/Java/Bibliotecas/jdom.jar"/>
-	<classpathentry kind="lib" path="C:/Users/SK-LENOVO/Documents/Java/Bibliotecas/mge-modelcore-4.10b16.jar"/>
-	<classpathentry kind="lib" path="C:/Users/SK-LENOVO/Documents/Java/Bibliotecas/sanws-4.10b16.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Raptor/Documents/Java/Bibliotecas/jape-4.6b457.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Raptor/Documents/Java/Bibliotecas/jdom.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Raptor/Documents/Java/Bibliotecas/mge-modelcore-4.10b16.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Raptor/Documents/Java/Bibliotecas/sanws-4.10b16.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Raptor/Documents/Java/Bibliotecas/sanutil-4.10b16.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
