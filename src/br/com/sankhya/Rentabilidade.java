@@ -6,6 +6,7 @@ import java.util.Iterator;
 
 import com.sankhya.util.TimeUtils;
 
+import br.com.sankhya.dao.NotaDAO;
 import br.com.sankhya.extensions.eventoprogramavel.EventoProgramavelJava;
 import br.com.sankhya.jape.EntityFacade;
 import br.com.sankhya.jape.core.JapeSession;
@@ -19,6 +20,7 @@ import br.com.sankhya.jape.vo.VOProperty;
 import br.com.sankhya.jape.wrapper.JapeFactory;
 import br.com.sankhya.jape.wrapper.JapeWrapper;
 import br.com.sankhya.jape.wrapper.fluid.FluidCreateVO;
+import br.com.sankhya.model.Nota;
 import br.com.sankhya.modelcore.util.DynamicEntityNames;
 import br.com.sankhya.modelcore.util.EntityFacadeFactory;
 
@@ -37,44 +39,28 @@ public class Rentabilidade implements EventoProgramavelJava {
 	public void afterInsert(PersistenceEvent ctx) throws Exception {
 		// TODO Quando um orçamento da tela de Ordens de Serviço for criado
 		// criar uma nota com os valores do cabeçalho deste orçamento.
-		DynamicVO ordemVO = (DynamicVO) ctx.getVo();
 
-		String tipolancamento = ordemVO.asString("TIPOLANCAMENTO");
+		SessionHandle hnd = null;
+		JdbcWrapper jdbc = null;
 
-		if (tipolancamento.equals("O")) {
-			SessionHandle hnd = null;
-			JdbcWrapper jdbc = null;
+		//try {
+		hnd = JapeSession.open();
+		EntityFacade dwfEntityFacade = EntityFacadeFactory.getDWFFacade();
+		jdbc = dwfEntityFacade.getJdbcWrapper();
 
-			
-				hnd = JapeSession.open();
-				EntityFacade dwfEntityFacade = EntityFacadeFactory.getDWFFacade();
-				jdbc = dwfEntityFacade.getJdbcWrapper();
-
-				NativeSql sql = new NativeSql(jdbc);
-				sql.appendSql("SELECT M.CODTIPOPERORC ");
-				sql.appendSql("FROM AD_MOTIVOABERT M ");
-				sql.appendSql("JOIN TGFTOP T ON T.CODTIPOPER = M.CODTIPOPERORC ");
-				sql.appendSql("WHERE M.CODMOTIVOABERT = 1 "); // Alterar dinâmico
-				sql.appendSql("AND ROWNUM = 1 ");
-				sql.appendSql("ORDER BY DHALTER DESC");
-				
-				ResultSet result = sql.executeQuery();
-				BigDecimal codtipoper = null;
-				
-				if (result.next())
-					codtipoper = result.getBigDecimal("CODTIPOPERORC");
-				
-				result.close();
+		Nota nota = NotaDAO.read(ctx, jdbc);
+		
+		if (nota.getTipolancamento().equals("O")) {
 					
 				BigDecimal nunotaTemplate = null;
-				NativeSql sql2 = new NativeSql(jdbc);
-				sql2.appendSql("SELECT NUNOTA ");
-				sql2.appendSql("FROM TGFCAB ");
-				sql2.appendSql("WHERE CODTIPOPER = :CODTIPOPER AND ROWNUM = 1 ");
-				sql2.appendSql("ORDER BY DTNEG DESC");
-				sql2.setNamedParameter("CODTIPOPER", codtipoper);
+				NativeSql sql = new NativeSql(jdbc);
+				sql.appendSql("SELECT NUNOTA ");
+				sql.appendSql("FROM TGFCAB ");
+				sql.appendSql("WHERE CODTIPOPER = :CODTIPOPER AND ROWNUM = 1 ");
+				sql.appendSql("ORDER BY DTNEG DESC");
+				sql.setNamedParameter("CODTIPOPER", nota.getCodtipoper());
 				
-				ResultSet result2 = sql2.executeQuery();
+				ResultSet result2 = sql.executeQuery();
 				
 				if (result2.next())
 					nunotaTemplate = result2.getBigDecimal("NUNOTA");
@@ -85,8 +71,6 @@ public class Rentabilidade implements EventoProgramavelJava {
 					throw new Exception("Teste: " + nunotaTemplate);
 */
 				createNovaNota(jdbc, nunotaTemplate);
-				
-				//cabVO.buildClone();
 
 			/*} catch (Exception e) {
 				e.printStackTrace();
