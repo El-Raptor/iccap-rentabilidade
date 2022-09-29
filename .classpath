@@ -11,5 +11,6 @@
 	<classpathentry kind="lib" path="C:/Users/Raptor/Documents/Java/Bibliotecas/mge-modelcore-4.10b16.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Raptor/Documents/Java/Bibliotecas/sanws-4.10b16.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Raptor/Documents/Java/Bibliotecas/sanutil-4.10b16.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Raptor/Documents/Java/Bibliotecas/jbossall-client.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

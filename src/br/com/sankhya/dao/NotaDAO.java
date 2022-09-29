@@ -30,6 +30,25 @@ public class NotaDAO {
 
 		return nota;
 	}
+	
+	public static BigDecimal readNunota (JdbcWrapper jdbc, BigDecimal codos) throws Exception {
+		NativeSql sql = new NativeSql(jdbc);
+		
+		sql.appendSql("SELECT NUNOTA ");
+		sql.appendSql("FROM TGFCAB ");
+		sql.appendSql("WHERE AD_CODOS = :CODOS");
+		
+		sql.setNamedParameter("CODOS", codos);
+		
+		ResultSet result = sql.executeQuery();
+		
+		if (result.next())
+			return result.getBigDecimal("NUNOTA");
+		
+		result.close();
+		
+		return null;
+	}
 
 	private static BigDecimal readCodtipoper(PersistenceEvent ctx, BigDecimal codmotivoabert, JdbcWrapper jdbc)
 			throws Exception {
@@ -54,4 +73,5 @@ public class NotaDAO {
 		return BigDecimal.ZERO;
 		
 	}
+	
 }
