@@ -121,7 +121,6 @@ public class Rentabilidade implements EventoProgramavelJava {
 		}*/
 		JapeSession.close(hnd);
 
-		
 	}
 
 	public static DynamicVO createNovaNota(Nota orcamento, BigDecimal nunotaTemplate) throws Exception {
@@ -201,7 +200,8 @@ public class Rentabilidade implements EventoProgramavelJava {
 		newVO.setProperty("VLRNOTA", nota.getVlrnota());
 		newVO.setProperty("VLRDESCTOT", nota.getDesctot());
 		newVO.setProperty("AD_CODOS", nota.getCodos());
-
+		newVO.setProperty("CODTIPOPER", nota.getCodtipoper());
+		
 		PrePersistEntityState cabState = PrePersistEntityState.build(entityFacade, DynamicEntityNames.CABECALHO_NOTA,
 				newVO, oldVO, entity);
 

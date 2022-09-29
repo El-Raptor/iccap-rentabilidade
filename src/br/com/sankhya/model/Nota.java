@@ -25,10 +25,10 @@ public class Nota {
 	public Nota() {
 
 	}
-	
+
 	public void buildNota(PersistenceEvent ctx, JdbcWrapper jdbc) throws Exception {
 		Nota nota = NotaDAO.read(ctx, jdbc);
-		
+
 		setCodemp(nota.getCodemp());
 		setCodmotivoabert(nota.getCodmotivoabert());
 		setCodos(nota.getCodos());
@@ -41,13 +41,13 @@ public class Nota {
 		setObservacao(nota.getObservacao());
 		setTipolancamento(nota.getTipolancamento());
 		setVlrnota(nota.getVlrnota());
-		
-		setNunota(NotaDAO.readNunota(jdbc, getCodos()));	
+
+		setNunota(NotaDAO.readNunota(jdbc, getCodos()));
 	}
-	
+
 	public void buildNewNota(PersistenceEvent ctx, JdbcWrapper jdbc) throws Exception {
 		Nota nota = NotaDAO.read(ctx, jdbc);
-		
+
 		setCodemp(nota.getCodemp());
 		setCodmotivoabert(nota.getCodmotivoabert());
 		setCodos(nota.getCodos());
@@ -60,7 +60,7 @@ public class Nota {
 		setObservacao(nota.getObservacao());
 		setTipolancamento(nota.getTipolancamento());
 		setVlrnota(nota.getVlrnota());
-	
+
 		// TODO: CODOS não pode ser null
 	}
 
@@ -175,5 +175,6 @@ public class Nota {
 	public void setCodmotivoabert(BigDecimal codmotivoabert) {
 		this.codmotivoabert = codmotivoabert;
 	}
+
 
 }
