@@ -127,7 +127,8 @@ public class Rentabilidade implements EventoProgramavelJava {
 		cabTemplate.setProperty("CODUSU", orcamento.getCodusu());
 		cabTemplate.setProperty("CODVEND", orcamento.getCodvend());
 		cabTemplate.setProperty("VLRNOTA", orcamento.getVlrnota());
-		cabTemplate.setProperty("DESCTOT", orcamento.getDesctot());
+		cabTemplate.setProperty("VLRDESCTOT", orcamento.getDesctot());
+		cabTemplate.setProperty("AD_CODOS", orcamento.getCodos());
 		cabTemplate.setProperty("TIPMOV", topDoModelo.asString("TIPMOV"));
 		//cabTemplate.setProperty("CODPARCTRANSP", new BigDecimal("0"));
 
