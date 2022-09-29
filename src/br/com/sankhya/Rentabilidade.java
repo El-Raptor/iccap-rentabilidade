@@ -60,17 +60,17 @@ public class Rentabilidade implements EventoProgramavelJava {
 				sql.appendSql("ORDER BY DTNEG DESC");
 				sql.setNamedParameter("CODTIPOPER", nota.getCodtipoper());
 				
-				ResultSet result2 = sql.executeQuery();
+				ResultSet result = sql.executeQuery();
 				
-				if (result2.next())
-					nunotaTemplate = result2.getBigDecimal("NUNOTA");
+				if (result.next())
+					nunotaTemplate = result.getBigDecimal("NUNOTA");
 
-				result2.close();
+				result.close();
 				
 				/*if (tipolancamento.equals("O"))
 					throw new Exception("Teste: " + nunotaTemplate);
 */
-				createNovaNota(jdbc, nunotaTemplate);
+				createNovaNota(nota, nunotaTemplate);
 
 			/*} catch (Exception e) {
 				e.printStackTrace();
@@ -95,7 +95,7 @@ public class Rentabilidade implements EventoProgramavelJava {
 
 	}
 
-	public static DynamicVO createNovaNota(JdbcWrapper jdbc, BigDecimal nunotaTemplate) throws Exception {
+	public static DynamicVO createNovaNota(Nota orcamento, BigDecimal nunotaTemplate) throws Exception {
 
 		JapeWrapper cabDAO = JapeFactory.dao(DynamicEntityNames.CABECALHO_NOTA);
 
@@ -117,17 +117,19 @@ public class Rentabilidade implements EventoProgramavelJava {
 		cabTemplate.setProperty("NUNOTA", null);
 		cabTemplate.setProperty("DHTIPOPER", null);
 		cabTemplate.setProperty("DHTIPVENDA", null);
-		cabTemplate.setProperty("TIPMOV", topDoModelo.asString("TIPMOV"));
+		cabTemplate.setProperty("NUMNOTA", new BigDecimal("0"));
 		cabTemplate.setProperty("DTNEG", TimeUtils.getNow());
 		cabTemplate.setProperty("DTENTSAI", TimeUtils.getNow());
-		cabTemplate.setProperty("CODEMP", BigDecimal.valueOf(1));
-		cabTemplate.setProperty("CODPARC", BigDecimal.valueOf(158));
-		cabTemplate.setProperty("NUMNOTA", new BigDecimal("0"));
-		cabTemplate.setProperty("VLRNOTA", BigDecimal.valueOf(2.80));
-		cabTemplate.setProperty("OBSERVACAO", "");
-		cabTemplate.setProperty("CIF_FOB", "S");
-		cabTemplate.setProperty("CODPARCTRANSP", new BigDecimal("0"));
-		cabTemplate.setProperty("QTDVOL", new BigDecimal("0"));
+		cabTemplate.setProperty("CODEMP", orcamento.getCodemp());
+		cabTemplate.setProperty("CODPARC", orcamento.getCodparc());
+		cabTemplate.setProperty("OBSERVACAO", orcamento.getObservacao());
+		cabTemplate.setProperty("CODTIPVENDA", orcamento.getCodtipvenda());
+		cabTemplate.setProperty("CODUSU", orcamento.getCodusu());
+		cabTemplate.setProperty("CODVEND", orcamento.getCodvend());
+		cabTemplate.setProperty("VLRNOTA", orcamento.getVlrnota());
+		cabTemplate.setProperty("DESCTOT", orcamento.getDesctot());
+		cabTemplate.setProperty("TIPMOV", topDoModelo.asString("TIPMOV"));
+		//cabTemplate.setProperty("CODPARCTRANSP", new BigDecimal("0"));
 
 		// duplica e cria a nova nunota
 		DynamicVO novaNota = duplicar(cabDAO, cabTemplate);
