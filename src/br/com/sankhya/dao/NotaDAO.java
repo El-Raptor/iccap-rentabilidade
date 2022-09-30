@@ -26,12 +26,31 @@ public class NotaDAO {
 		nota.setVlrnota(notaVO.asBigDecimal("VLRTOTGERAL"));
 		nota.setDesctot(notaVO.asBigDecimal("DESCTOTAL"));
 		nota.setCodmotivoabert(notaVO.asBigDecimal("CODMOTIVOABERT"));
-		nota.setCodtipoper(readCodtipoper(ctx, nota.getCodmotivoabert(), jdbc));
+		nota.setCodtipoper(readCodtipoper(nota.getCodmotivoabert(), jdbc));
 
 		return nota;
 	}
+	
+	public static BigDecimal readNunota (JdbcWrapper jdbc, BigDecimal codos) throws Exception {
+		NativeSql sql = new NativeSql(jdbc);
+		
+		sql.appendSql("SELECT NUNOTA ");
+		sql.appendSql("FROM TGFCAB ");
+		sql.appendSql("WHERE AD_CODOS = :CODOS");
+		
+		sql.setNamedParameter("CODOS", codos);
+		
+		ResultSet result = sql.executeQuery();
+		
+		if (result.next())
+			return result.getBigDecimal("NUNOTA");
+		
+		result.close();
+		
+		return null;
+	}
 
-	private static BigDecimal readCodtipoper(PersistenceEvent ctx, BigDecimal codmotivoabert, JdbcWrapper jdbc)
+	private static BigDecimal readCodtipoper(BigDecimal codmotivoabert, JdbcWrapper jdbc)
 			throws Exception {
 		NativeSql sql = new NativeSql(jdbc);
 		
@@ -54,4 +73,5 @@ public class NotaDAO {
 		return BigDecimal.ZERO;
 		
 	}
+	
 }
