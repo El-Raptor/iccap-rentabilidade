@@ -157,6 +157,7 @@ public class Rentabilidade implements EventoProgramavelJava {
 		cabTemplate.setProperty("VLRDESCTOT", orcamento.getDesctot());
 		cabTemplate.setProperty("AD_CODOS", orcamento.getCodos());
 		cabTemplate.setProperty("TIPMOV", topDoModelo.asString("TIPMOV"));
+		cabTemplate.setProperty("CIF_FOB", "S");
 
 		// duplica e cria a nova nunota
 		DynamicVO novaNota = duplicar(cabDAO, cabTemplate);
@@ -209,48 +210,6 @@ public class Rentabilidade implements EventoProgramavelJava {
 
 		cacHelper.incluirAlterarCabecalho(authInfo, cabState);
 	}
-
-	/*
-	 * private void adicionaItemPedido(DynamicVO nota, ArrayList<Item> itens,
-	 * ArrayList<Produto> produtos) throws Exception {
-	 * Collection<PrePersistEntityState> itensNota = new
-	 * ArrayList<PrePersistEntityState>();
-	 * 
-	 * for (int i = 0; i < itens.size(); i++) { Item item = itens.get(i); Produto
-	 * produto = produtos.get(i);
-	 * 
-	 * EntityFacade dwfFacade = EntityFacadeFactory.getDWFFacade(); DynamicVO itemVO
-	 * = (DynamicVO)
-	 * dwfFacade.getDefaultValueObjectInstance(DynamicEntityNames.ITEM_NOTA);
-	 * 
-	 * itemVO.setPrimaryKey(null); itemVO.setProperty("NUNOTA",
-	 * nota.asBigDecimal("NUNOTA")); itemVO.setProperty("CODEMP",
-	 * nota.asBigDecimal("CODEMP")); itemVO.setProperty("CODVEND",
-	 * nota.asBigDecimal("CODVEND")); itemVO.setProperty("CODPROD",
-	 * produto.getCodProd()); itemVO.setProperty("USOPROD", produto.getUsoProd());
-	 * itemVO.setProperty("CODVOL", produto.getCodVol());
-	 * itemVO.setProperty("CONTROLE",
-	 * (StringUtils.getNullAsEmpty(produto.getControle()).isEmpty() ? " " :
-	 * produto.getControle())); itemVO.setProperty("CODLOCALORIG",
-	 * produto.getCodigoLocal()); itemVO.setProperty("QTDNEG",
-	 * item.getQuantidade()); itemVO.setProperty("PERCDESC", BigDecimal.ZERO);
-	 * itemVO.setProperty("VLRDESC", BigDecimal.ZERO); itemVO.setProperty("VLRUNIT",
-	 * item.getPreco());
-	 * 
-	 * BigDecimal valorTotal = item.getPreco().multiply(item.getQuantidade());
-	 * 
-	 * itemVO.setProperty("VLRTOT", valorTotal);
-	 * 
-	 * PrePersistEntityState itemMontado = PrePersistEntityState.build(dwfFacade,
-	 * DynamicEntityNames.ITEM_NOTA, itemVO);
-	 * 
-	 * itensNota.add(itemMontado);
-	 * 
-	 * } CACHelper sistema = new CACHelper();
-	 * 
-	 * sistema.incluirAlterarItem(nota.asBigDecimal("NUNOTA"), authInfo, itensNota,
-	 * true); }
-	 */
 
 	@Override
 	public void beforeCommit(TransactionContext arg0) throws Exception {

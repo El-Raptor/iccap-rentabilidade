@@ -12,6 +12,7 @@ import br.com.sankhya.model.Nota;
 public class NotaDAO {
 
 	public static Nota read(PersistenceEvent ctx, JdbcWrapper jdbc) throws Exception {
+		// TODO: Colocar o DynamicVO como parâmetro.
 		DynamicVO notaVO = (DynamicVO) ctx.getVo();
 		Nota nota = new Nota();
 
