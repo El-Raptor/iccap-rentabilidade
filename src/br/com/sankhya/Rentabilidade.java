@@ -157,6 +157,7 @@ public class Rentabilidade implements EventoProgramavelJava {
 		cabTemplate.setProperty("VLRDESCTOT", orcamento.getDesctot());
 		cabTemplate.setProperty("AD_CODOS", orcamento.getCodos());
 		cabTemplate.setProperty("TIPMOV", topDoModelo.asString("TIPMOV"));
+		cabTemplate.setProperty("CIF_FOB", "S");
 
 		// duplica e cria a nova nunota
 		DynamicVO novaNota = duplicar(cabDAO, cabTemplate);

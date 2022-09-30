@@ -10,6 +10,7 @@ import br.com.sankhya.jape.core.JapeSession;
 import br.com.sankhya.jape.core.JapeSession.SessionHandle;
 import br.com.sankhya.jape.event.PersistenceEvent;
 import br.com.sankhya.jape.event.TransactionContext;
+import br.com.sankhya.jape.util.JapeSessionContext;
 import br.com.sankhya.jape.vo.DynamicVO;
 import br.com.sankhya.jape.vo.PrePersistEntityState;
 import br.com.sankhya.jape.wrapper.JapeFactory;
@@ -40,7 +41,7 @@ public class EventoItens implements EventoProgramavelJava {
 		//JdbcWrapper jdbc = null;
 
 		// try {
-		//hnd = JapeSession.open();
+		hnd = JapeSession.open(); 
 		//EntityFacade dwfEntityFacade = EntityFacadeFactory.getDWFFacade();
 		//jdbc = dwfEntityFacade.getJdbcWrapper();
 
@@ -53,7 +54,7 @@ public class EventoItens implements EventoProgramavelJava {
 		DynamicVO oscabVO = oscabDAO.findByPK(codoos);
 		
 		JapeWrapper cabDAO = JapeFactory.dao(DynamicEntityNames.CABECALHO_NOTA);
-		DynamicVO cabVO = cabDAO.findByPK("224748"); //TODO: Change hard code
+		DynamicVO cabVO = cabDAO.findOne(" AD_CODOS = " + codoos); //TODO: Change hard code
 
 		if (oscabVO.asString("TIPOLANCAMENTO").equals("O")) {
 
@@ -63,8 +64,8 @@ public class EventoItens implements EventoProgramavelJava {
 			item.setCodvol("UN");
 			item.setCodlocalorig(new BigDecimal(12004));
 			item.setQtdneg(BigDecimal.ONE);
-			item.setVlrunit(new BigDecimal(195.81));
-			item.setVlrtot(new BigDecimal(195.81));
+			item.setVlrunit(new BigDecimal(27.34));
+			item.setVlrtot(new BigDecimal(27.34));
 
 			adicionaItemPedido(cabVO, item);
 		}
@@ -85,6 +86,10 @@ public class EventoItens implements EventoProgramavelJava {
 	private void adicionaItemPedido(DynamicVO nota, Item item) throws Exception {
 		Collection<PrePersistEntityState> itensNota = new ArrayList<PrePersistEntityState>();
 		AuthenticationInfo authInfo = AuthenticationInfo.getCurrent();
+		
+		// Variáveis do sistema nos quais permite recalcular o financeiro
+		JapeSessionContext.putProperty("br.com.sankhya.com.CentralCompraVenda", Boolean.TRUE);
+		JapeSessionContext.putProperty("ItemNota.incluindo.alterando.pela.central", Boolean.TRUE);
 
 		EntityFacade dwfFacade = EntityFacadeFactory.getDWFFacade();
 		DynamicVO itemVO = (DynamicVO) dwfFacade.getDefaultValueObjectInstance(DynamicEntityNames.ITEM_NOTA);
