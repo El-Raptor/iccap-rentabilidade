@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import br.com.sankhya.dao.ItemDAO;
 import br.com.sankhya.extensions.eventoprogramavel.EventoProgramavelJava;
 import br.com.sankhya.jape.EntityFacade;
 import br.com.sankhya.jape.core.JapeSession;
@@ -54,18 +55,12 @@ public class EventoItens implements EventoProgramavelJava {
 		DynamicVO oscabVO = oscabDAO.findByPK(codoos);
 		
 		JapeWrapper cabDAO = JapeFactory.dao(DynamicEntityNames.CABECALHO_NOTA);
-		DynamicVO cabVO = cabDAO.findOne(" AD_CODOS = " + codoos); //TODO: Change hard code
+		DynamicVO cabVO = cabDAO.findOne(" AD_CODOS = " + codoos);
 
 		if (oscabVO.asString("TIPOLANCAMENTO").equals("O")) {
 
 			/* Inicializando item */
-			Item item = new Item();
-			item.setCodprod(new BigDecimal(7423));
-			item.setCodvol("UN");
-			item.setCodlocalorig(new BigDecimal(12004));
-			item.setQtdneg(BigDecimal.ONE);
-			item.setVlrunit(new BigDecimal(27.34));
-			item.setVlrtot(new BigDecimal(27.34));
+			Item item = ItemDAO.read(iteVO);
 
 			adicionaItemPedido(cabVO, item);
 		}
@@ -103,8 +98,8 @@ public class EventoItens implements EventoProgramavelJava {
 		itemVO.setProperty("CODVOL", item.getCodvol());
 		itemVO.setProperty("CODLOCALORIG", item.getCodlocalorig());
 		itemVO.setProperty("QTDNEG", item.getQtdneg());
-		itemVO.setProperty("PERCDESC", BigDecimal.ZERO);
-		itemVO.setProperty("VLRDESC", BigDecimal.ZERO);
+		itemVO.setProperty("PERCDESC",item.getPercdesc());
+		itemVO.setProperty("VLRDESC", item.getVlrdesc());
 		itemVO.setProperty("VLRUNIT", item.getVlrunit());
 		itemVO.setProperty("VLRTOT", item.getVlrtot());
 
