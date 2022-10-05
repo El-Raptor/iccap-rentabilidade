@@ -145,6 +145,8 @@ public class EventoItens implements EventoProgramavelJava {
 		CACHelper sistema = new CACHelper();
 
 		sistema.incluirAlterarItem(nota.asBigDecimal("NUNOTA"), authInfo, itensNota, true);
+		
+		atualizarItemNota(item, itemVO, nota);
 	}
 
 	private static void atualizarItemNota(Item item, DynamicVO itemVO, DynamicVO cabVO) throws Exception {
