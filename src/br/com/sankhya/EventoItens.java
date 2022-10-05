@@ -76,14 +76,28 @@ public class EventoItens implements EventoProgramavelJava {
 	}
 
 	@Override
-	public void afterUpdate(PersistenceEvent paramPersistenceEvent) throws Exception {
+	public void afterUpdate(PersistenceEvent ctx) throws Exception {
 		SessionHandle hnd = null;
 
 		// JdbcWrapper jdbc = null;
 
 		// try {
 		hnd = JapeSession.open();
+		DynamicVO itemVO = (DynamicVO) ctx.getVo();
 		
+		Item item = new Item();
+		item = ItemDAO.read(itemVO);
+		
+		// TODO: Fazer um método para buscar o VO da CAB.
+		BigDecimal codoos = itemVO.asBigDecimal("CODOOS");
+		
+		JapeWrapper cabDAO = JapeFactory.dao(DynamicEntityNames.CABECALHO_NOTA);
+		DynamicVO cabVO = cabDAO.findOne(" AD_CODOS = " + codoos);
+		
+		JapeWrapper iteDAO = JapeFactory.dao(DynamicEntityNames.ITEM_NOTA);
+		DynamicVO iteVO = iteDAO.findByPK(cabVO.asBigDecimal("NUNOTA"), itemVO.asBigDecimal("CODITE"));
+		
+		atualizarItemNota(item, iteVO, cabVO);
 		
 		
 		/*
@@ -139,13 +153,14 @@ public class EventoItens implements EventoProgramavelJava {
 		JapeSessionContext.putProperty("ItemNota.incluindo.alterando.pela.central", Boolean.TRUE);
 
 		ServiceContext service = ServiceContext.getCurrent();
-		EntityFacade dwfEntityFacade = EntityFacadeFactory.getDWFFacade();
 
 		BigDecimal vlrunit = item.getVlrunit();
 
+		itemVO.setProperty("CODPROD", item.getCodprod());
+		itemVO.setProperty("QTDNEG", item.getQtdneg());
+		itemVO.setProperty("VLRDESC", item.getVlrdesc());
 		itemVO.setProperty("VLRUNIT", vlrunit);
 		itemVO.setProperty("VLRTOT", vlrunit.multiply(item.getQtdneg()));
-		itemVO.setProperty("AD_FRETECALCULADO", "S");
 
 		CentralItemNota itemNota = new CentralItemNota();
 		itemNota.recalcularValores("VLRUNIT", vlrunit.toString(), itemVO, cabVO.asBigDecimal("NUNOTA"));
