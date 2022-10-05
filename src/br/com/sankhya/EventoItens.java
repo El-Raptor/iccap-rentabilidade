@@ -3,6 +3,7 @@ package br.com.sankhya;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import br.com.sankhya.dao.ItemDAO;
 import br.com.sankhya.extensions.eventoprogramavel.EventoProgramavelJava;
@@ -18,9 +19,11 @@ import br.com.sankhya.jape.wrapper.JapeFactory;
 import br.com.sankhya.jape.wrapper.JapeWrapper;
 import br.com.sankhya.model.Item;
 import br.com.sankhya.modelcore.auth.AuthenticationInfo;
+import br.com.sankhya.modelcore.comercial.CentralItemNota;
 import br.com.sankhya.modelcore.comercial.centrais.CACHelper;
 import br.com.sankhya.modelcore.util.DynamicEntityNames;
 import br.com.sankhya.modelcore.util.EntityFacadeFactory;
+import br.com.sankhya.ws.ServiceContext;
 
 /**
  * Este programa realiza o espelhamento dos valores dos itens de um ordem de
@@ -38,22 +41,22 @@ public class EventoItens implements EventoProgramavelJava {
 		// peça será refletida como um item na nota do orçamento.
 
 		SessionHandle hnd = null;
-		
-		//JdbcWrapper jdbc = null;
+
+		// JdbcWrapper jdbc = null;
 
 		// try {
-		hnd = JapeSession.open(); 
-		//EntityFacade dwfEntityFacade = EntityFacadeFactory.getDWFFacade();
-		//jdbc = dwfEntityFacade.getJdbcWrapper();
+		hnd = JapeSession.open();
+		// EntityFacade dwfEntityFacade = EntityFacadeFactory.getDWFFacade();
+		// jdbc = dwfEntityFacade.getJdbcWrapper();
 
-		//Nota nota = new Nota();
+		// Nota nota = new Nota();
 		DynamicVO iteVO = (DynamicVO) ctx.getVo();
 
 		BigDecimal codoos = iteVO.asBigDecimal("CODOOS");
-		
+
 		JapeWrapper oscabDAO = JapeFactory.dao("AD_OOSCAB");
 		DynamicVO oscabVO = oscabDAO.findByPK(codoos);
-		
+
 		JapeWrapper cabDAO = JapeFactory.dao(DynamicEntityNames.CABECALHO_NOTA);
 		DynamicVO cabVO = cabDAO.findOne(" AD_CODOS = " + codoos);
 
@@ -73,22 +76,52 @@ public class EventoItens implements EventoProgramavelJava {
 	}
 
 	@Override
-	public void afterUpdate(PersistenceEvent paramPersistenceEvent) throws Exception {
-		// TODO Auto-generated method stub
+	public void afterUpdate(PersistenceEvent ctx) throws Exception {
+		SessionHandle hnd = null;
+
+		// JdbcWrapper jdbc = null;
+
+		// try {
+		hnd = JapeSession.open();
+		DynamicVO itemVO = (DynamicVO) ctx.getVo();
+		
+		Item item = new Item();
+		item = ItemDAO.read(itemVO);
+		
+		// TODO: Fazer um método para buscar o VO da CAB.
+		BigDecimal codoos = itemVO.asBigDecimal("CODOOS");
+		
+		JapeWrapper cabDAO = JapeFactory.dao(DynamicEntityNames.CABECALHO_NOTA);
+		DynamicVO cabVO = cabDAO.findOne(" AD_CODOS = " + codoos);
+		
+		JapeWrapper iteDAO = JapeFactory.dao(DynamicEntityNames.ITEM_NOTA);
+		DynamicVO iteVO = iteDAO.findByPK(cabVO.asBigDecimal("NUNOTA"), itemVO.asBigDecimal("CODITE"));
+		
+		atualizarItemNota(item, iteVO, cabVO);
+		
+		
+		/*
+		 * } catch (Exception e) { e.printStackTrace(); e.getMessage();
+		 * //MGEModelException.throwMe(e); } finally { JapeSession.close(hnd); }
+		 */
+		JapeSession.close(hnd);
 
 	}
 
 	private void adicionaItemPedido(DynamicVO nota, Item item) throws Exception {
 		Collection<PrePersistEntityState> itensNota = new ArrayList<PrePersistEntityState>();
 		AuthenticationInfo authInfo = AuthenticationInfo.getCurrent();
-		
-		// Variáveis do sistema nos quais permite recalcular o financeiro
+
+		// Variáveis do sistema nos quais permitem recalcular o financeiro
 		JapeSessionContext.putProperty("br.com.sankhya.com.CentralCompraVenda", Boolean.TRUE);
 		JapeSessionContext.putProperty("ItemNota.incluindo.alterando.pela.central", Boolean.TRUE);
 
 		EntityFacade dwfFacade = EntityFacadeFactory.getDWFFacade();
 		DynamicVO itemVO = (DynamicVO) dwfFacade.getDefaultValueObjectInstance(DynamicEntityNames.ITEM_NOTA);
 
+		/*if (item != null)
+			throw new Exception("Vlr Unit; " + item.getVlrunit() + " Vlr. Desc: " + item.getVlrdesc());*/
+		
 		itemVO.setPrimaryKey(null);
 		itemVO.setProperty("NUNOTA", nota.asBigDecimal("NUNOTA"));
 		itemVO.setProperty("CODEMP", nota.asBigDecimal("CODEMP"));
@@ -98,10 +131,11 @@ public class EventoItens implements EventoProgramavelJava {
 		itemVO.setProperty("CODVOL", item.getCodvol());
 		itemVO.setProperty("CODLOCALORIG", item.getCodlocalorig());
 		itemVO.setProperty("QTDNEG", item.getQtdneg());
-		itemVO.setProperty("PERCDESC",item.getPercdesc());
+		itemVO.setProperty("PERCDESC", item.getPercdesc());
 		itemVO.setProperty("VLRDESC", item.getVlrdesc());
 		itemVO.setProperty("VLRUNIT", item.getVlrunit());
 		itemVO.setProperty("VLRTOT", item.getVlrtot());
+		
 
 		PrePersistEntityState itemMontado = PrePersistEntityState.build(dwfFacade, DynamicEntityNames.ITEM_NOTA,
 				itemVO);
@@ -111,6 +145,31 @@ public class EventoItens implements EventoProgramavelJava {
 		CACHelper sistema = new CACHelper();
 
 		sistema.incluirAlterarItem(nota.asBigDecimal("NUNOTA"), authInfo, itensNota, true);
+	}
+
+	private static void atualizarItemNota(Item item, DynamicVO itemVO, DynamicVO cabVO) throws Exception {
+		// Variáveis do sistema nos quais permitem recalcular o financeiro
+		JapeSessionContext.putProperty("br.com.sankhya.com.CentralCompraVenda", Boolean.TRUE);
+		JapeSessionContext.putProperty("ItemNota.incluindo.alterando.pela.central", Boolean.TRUE);
+
+		ServiceContext service = ServiceContext.getCurrent();
+
+		BigDecimal vlrunit = item.getVlrunit();
+
+		itemVO.setProperty("CODPROD", item.getCodprod());
+		itemVO.setProperty("QTDNEG", item.getQtdneg());
+		itemVO.setProperty("VLRDESC", item.getVlrdesc());
+		itemVO.setProperty("VLRUNIT", vlrunit);
+		itemVO.setProperty("VLRTOT", vlrunit.multiply(item.getQtdneg()));
+
+		CentralItemNota itemNota = new CentralItemNota();
+		itemNota.recalcularValores("VLRUNIT", vlrunit.toString(), itemVO, cabVO.asBigDecimal("NUNOTA"));
+
+		List<DynamicVO> itensFatura = new ArrayList<DynamicVO>();
+		itensFatura.add(itemVO);
+
+		CACHelper cacHelper = new CACHelper();
+		cacHelper.incluirAlterarItem(cabVO.asBigDecimal("NUNOTA"), service, null, false, itensFatura);
 	}
 
 	@Override

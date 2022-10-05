@@ -109,6 +109,7 @@ public class Rentabilidade implements EventoProgramavelJava {
 		Nota orcamento = new Nota();
 		orcamento.buildNota(ctx, jdbc);
 		
+		// TODO: Tipo de lançamento pode ser qualquer um para alteração.
 		if (orcamento.getTipolancamento().equals("O") ) {
 			updateProperty(orcamento);
 		}

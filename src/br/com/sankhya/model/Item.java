@@ -10,11 +10,18 @@ public class Item {
 	private BigDecimal vlrdesc;
 	private BigDecimal vlrunit;
 	private BigDecimal vlrtot;
+	private BigDecimal vlracresc;
 	private String usoprod;
 	private String codvol;
 	
 	public Item () {
 		
+	}
+	
+	public void computedValues() {
+		setVlrunit((this.vlrunit.multiply(getQtdneg()).add(getVlracresc())).divide(getQtdneg(), 3,
+				BigDecimal.ROUND_HALF_UP));		
+		setVlrdesc(this.vlrdesc.divide(getQtdneg(), 3, BigDecimal.ROUND_HALF_UP));
 	}
 
 	public BigDecimal getCodprod() {
@@ -88,5 +95,15 @@ public class Item {
 	public void setVlrtot(BigDecimal vlrtot) {
 		this.vlrtot = vlrtot;
 	}
+
+	public BigDecimal getVlracresc() {
+		return vlracresc;
+	}
+
+	public void setVlracresc(BigDecimal vlracresc) {
+		this.vlracresc = vlracresc;
+	}
+	
+	
 		
 }
