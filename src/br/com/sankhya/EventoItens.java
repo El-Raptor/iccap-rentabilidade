@@ -1,6 +1,7 @@
 package br.com.sankhya;
 
 import java.math.BigDecimal;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -10,8 +11,10 @@ import br.com.sankhya.extensions.eventoprogramavel.EventoProgramavelJava;
 import br.com.sankhya.jape.EntityFacade;
 import br.com.sankhya.jape.core.JapeSession;
 import br.com.sankhya.jape.core.JapeSession.SessionHandle;
+import br.com.sankhya.jape.dao.JdbcWrapper;
 import br.com.sankhya.jape.event.PersistenceEvent;
 import br.com.sankhya.jape.event.TransactionContext;
+import br.com.sankhya.jape.sql.NativeSql;
 import br.com.sankhya.jape.util.JapeSessionContext;
 import br.com.sankhya.jape.vo.DynamicVO;
 import br.com.sankhya.jape.vo.PrePersistEntityState;
@@ -42,12 +45,12 @@ public class EventoItens implements EventoProgramavelJava {
 
 		SessionHandle hnd = null;
 
-		// JdbcWrapper jdbc = null;
+		JdbcWrapper jdbc = null;
 
 		// try {
 		hnd = JapeSession.open();
-		// EntityFacade dwfEntityFacade = EntityFacadeFactory.getDWFFacade();
-		// jdbc = dwfEntityFacade.getJdbcWrapper();
+		EntityFacade dwfEntityFacade = EntityFacadeFactory.getDWFFacade();
+		jdbc = dwfEntityFacade.getJdbcWrapper();
 
 		// Nota nota = new Nota();
 		DynamicVO iteVO = (DynamicVO) ctx.getVo();
@@ -66,6 +69,28 @@ public class EventoItens implements EventoProgramavelJava {
 			Item item = ItemDAO.read(iteVO);
 
 			adicionaItemPedido(cabVO, item);
+
+			// Atualiza sequência
+			NativeSql sql = new NativeSql(jdbc);
+			
+			sql.appendSql("SELECT CODITE FROM AD_OOSITE WHERE CODOOS = :CODOOS ORDER BY CODITE");
+			
+			sql.setNamedParameter("CODOOS", codoos);
+			
+			ResultSet rset = sql.executeQuery();
+			for (int sequencia = 1; rset.next(); sequencia++) {
+				NativeSql update = new NativeSql(jdbc);
+				update.appendSql("UPDATE AD_OOSITE SET SEQITE = :SEQUENCIA ");
+				update.appendSql("WHERE CODOOS = :CODOOS AND CODITE = :CODITE");
+				
+				update.setNamedParameter("SEQUENCIA", sequencia);
+				update.setNamedParameter("CODOOS", codoos);
+				update.setNamedParameter("CODITE", rset.getBigDecimal("CODITE"));
+				update.executeUpdate();
+			}
+			
+			rset.close();
+				
 		}
 		/*
 		 * } catch (Exception e) { e.printStackTrace(); e.getMessage();
@@ -147,6 +172,8 @@ public class EventoItens implements EventoProgramavelJava {
 		sistema.incluirAlterarItem(nota.asBigDecimal("NUNOTA"), authInfo, itensNota, true);
 		
 		atualizarItemNota(item, itemVO, nota);
+		
+		
 	}
 
 	private static void atualizarItemNota(Item item, DynamicVO itemVO, DynamicVO cabVO) throws Exception {
