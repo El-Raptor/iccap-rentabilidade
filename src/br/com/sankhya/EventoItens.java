@@ -121,6 +121,7 @@ public class EventoItens implements EventoProgramavelJava {
 		itemVO.setProperty("VLRDESC", item.getVlrdesc());
 		itemVO.setProperty("VLRUNIT", item.getVlrunit());
 		itemVO.setProperty("VLRTOT", item.getVlrtot());
+		
 
 		PrePersistEntityState itemMontado = PrePersistEntityState.build(dwfFacade, DynamicEntityNames.ITEM_NOTA,
 				itemVO);

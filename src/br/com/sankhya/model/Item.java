@@ -19,13 +19,9 @@ public class Item {
 	}
 	
 	public void computedValues() {
-		(this.vlrunit.multiply(getQtdneg()).add(getVlracresc())).divide(getQtdneg(), 3,
-				BigDecimal.ROUND_HALF_UP);
-		
-		this.vlrdesc.divide(getQtdneg(), 3, BigDecimal.ROUND_HALF_UP);
-		
-		setVlrunit(vlrunit);
-		setVlrdesc(vlrdesc);
+		setVlrunit((this.vlrunit.multiply(getQtdneg()).add(getVlracresc())).divide(getQtdneg(), 3,
+				BigDecimal.ROUND_HALF_UP));		
+		setVlrdesc(this.vlrdesc.divide(getQtdneg(), 3, BigDecimal.ROUND_HALF_UP));
 	}
 
 	public BigDecimal getCodprod() {
