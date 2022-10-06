@@ -123,8 +123,10 @@ public class EventoItens implements EventoProgramavelJava {
 		/*try {*/
 			DynamicVO iteVO = (DynamicVO) ctx.getVo();
 			hnd = JapeSession.open();
+			
 			JapeWrapper cabDAO = JapeFactory.dao(DynamicEntityNames.CABECALHO_NOTA);
 			DynamicVO cabVO = cabDAO.findOne(" AD_CODOS = " +  iteVO.asBigDecimal("CODOOS"));
+			
 			JapeWrapper itemDAO = JapeFactory.dao(DynamicEntityNames.ITEM_NOTA);
 			DynamicVO itemVO = itemDAO.findOne("NUNOTA = " + cabVO.asBigDecimal("NUNOTA") +
 					"AND SEQUENCIA = " + iteVO.asBigDecimal("SEQITE"));
