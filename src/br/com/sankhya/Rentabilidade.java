@@ -47,79 +47,68 @@ public class Rentabilidade implements EventoProgramavelJava {
 		SessionHandle hnd = null;
 		JdbcWrapper jdbc = null;
 
-		//try {
+		// try {
 		hnd = JapeSession.open();
 		EntityFacade dwfEntityFacade = EntityFacadeFactory.getDWFFacade();
 		jdbc = dwfEntityFacade.getJdbcWrapper();
 
 		Nota nota = new Nota();
 		nota.buildNewNota(ctx, jdbc);
-		
+
 		if (nota.getTipolancamento().equals("O")) {
-					
-				BigDecimal nunotaTemplate = null;
-				NativeSql sql = new NativeSql(jdbc);
-				sql.appendSql("SELECT NUNOTA ");
-				sql.appendSql("FROM TGFCAB ");
-				sql.appendSql("WHERE CODTIPOPER = :CODTIPOPER AND ROWNUM = 1 ");
-				sql.appendSql("ORDER BY DTNEG DESC");
-				sql.setNamedParameter("CODTIPOPER", nota.getCodtipoper());
-				
-				ResultSet result = sql.executeQuery();
-				
-				if (result.next())
-					nunotaTemplate = result.getBigDecimal("NUNOTA");
 
-				result.close();
-				
-				/*if (tipolancamento.equals("O"))
-					throw new Exception("Teste: " + nunotaTemplate);
-*/
-				createNovaNota(nota, nunotaTemplate);
+			BigDecimal nunotaTemplate = null;
+			NativeSql sql = new NativeSql(jdbc);
+			sql.appendSql("SELECT NUNOTA ");
+			sql.appendSql("FROM TGFCAB ");
+			sql.appendSql("WHERE CODTIPOPER = :CODTIPOPER AND ROWNUM = 1 ");
+			sql.appendSql("ORDER BY DTNEG DESC");
+			sql.setNamedParameter("CODTIPOPER", nota.getCodtipoper());
 
-			/*} catch (Exception e) {
-				e.printStackTrace();
-				e.getMessage();
-				//MGEModelException.throwMe(e);
-			} finally {
-				JapeSession.close(hnd);
-			}*/
-				JapeSession.close(hnd);
+			ResultSet result = sql.executeQuery();
+
+			if (result.next())
+				nunotaTemplate = result.getBigDecimal("NUNOTA");
+
+			result.close();
+
+			/*
+			 * if (tipolancamento.equals("O")) throw new Exception("Teste: " +
+			 * nunotaTemplate);
+			 */
+			createNovaNota(nota, nunotaTemplate);
 
 		}
-
-		// TODO Se for um serviço já faturado, vai verificar qual o códgigo de OS
-		// de origem, buscar o nro. único da nota dessa OS e fazer essa nota ser
-		// faturada.
+		JapeSession.close(hnd);
+		/*
+		 * } catch (Exception e) { e.printStackTrace(); e.getMessage();
+		 * //MGEModelException.throwMe(e); } finally { JapeSession.close(hnd); }
+		 */
 
 	}
 
 	@Override
 	public void afterUpdate(PersistenceEvent ctx) throws Exception {
 		// TODO Quando um orçamento ou um serviço for alterado
-		
+
 		SessionHandle hnd = null;
 		JdbcWrapper jdbc = null;
 
-		//try {
+		// try {
 		hnd = JapeSession.open();
 		EntityFacade dwfEntityFacade = EntityFacadeFactory.getDWFFacade();
 		jdbc = dwfEntityFacade.getJdbcWrapper();
 
 		Nota orcamento = new Nota();
 		orcamento.buildNota(ctx, jdbc);
-		
+
 		// TODO: Tipo de lançamento pode ser qualquer um para alteração.
-		if (orcamento.getTipolancamento().equals("O") ) {
-			updateProperty(orcamento);
-		}
-		/*} catch (Exception e) {
-			e.printStackTrace();
-			e.getMessage();
-			//MGEModelException.throwMe(e);
-		} finally {
-			JapeSession.close(hnd);
-		}*/
+		updateProperty(orcamento);
+
+		/*
+		 * } catch (Exception e) { e.printStackTrace(); e.getMessage();
+		 * //MGEModelException.throwMe(e); } finally { JapeSession.close(hnd); }
+		 */
 		JapeSession.close(hnd);
 
 	}
@@ -131,7 +120,8 @@ public class Rentabilidade implements EventoProgramavelJava {
 
 		if (nunotaTemplate == null)
 			throw new Exception("Nota modelo de operação de pedido de venda não existe ou não "
-					+ "foi cadastrada corretamentre na tela de preferencias panorama");
+					+ "foi cadastrada corretamente. Crie um modelo de nota na tela Modelo de "
+					+ "Notas de Pedidos com o mesmo Tipo de Operação");
 
 		final DynamicVO cabTemplate = cabDAO.findByPK(nunotaTemplate);
 
@@ -178,7 +168,7 @@ public class Rentabilidade implements EventoProgramavelJava {
 
 		return fluidCreateVO.save();
 	}
-	
+
 	private void updateProperty(Nota nota) throws Exception {
 		EntityFacade entityFacade = EntityFacadeFactory.getDWFFacade();
 		EntityDAO dao = entityFacade.getDAOInstance(DynamicEntityNames.CABECALHO_NOTA);
@@ -192,7 +182,7 @@ public class Rentabilidade implements EventoProgramavelJava {
 				cabVO.asBigDecimal("NUNOTA"));
 		DynamicVO oldVO = (DynamicVO) entity.getValueObject();
 		DynamicVO newVO = oldVO.buildClone();
-		
+
 		newVO.setProperty("CODEMP", nota.getCodemp());
 		newVO.setProperty("CODPARC", nota.getCodparc());
 		newVO.setProperty("OBSERVACAO", nota.getObservacao());
@@ -203,7 +193,7 @@ public class Rentabilidade implements EventoProgramavelJava {
 		newVO.setProperty("VLRDESCTOT", nota.getDesctot());
 		newVO.setProperty("AD_CODOS", nota.getCodos());
 		newVO.setProperty("CODTIPOPER", nota.getCodtipoper());
-		
+
 		PrePersistEntityState cabState = PrePersistEntityState.build(entityFacade, DynamicEntityNames.CABECALHO_NOTA,
 				newVO, oldVO, entity);
 

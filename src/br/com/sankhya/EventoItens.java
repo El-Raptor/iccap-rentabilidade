@@ -104,7 +104,7 @@ public class EventoItens implements EventoProgramavelJava {
 		DynamicVO cabVO = cabDAO.findOne(" AD_CODOS = " + codoos);
 
 		JapeWrapper iteDAO = JapeFactory.dao(DynamicEntityNames.ITEM_NOTA);
-		DynamicVO iteVO = iteDAO.findByPK(cabVO.asBigDecimal("NUNOTA"), itemVO.asBigDecimal("CODITE"));
+		DynamicVO iteVO = iteDAO.findByPK(cabVO.asBigDecimal("NUNOTA"), itemVO.asBigDecimal("SEQITE"));
 
 		atualizarItemNota(item, iteVO, cabVO);
 
@@ -123,8 +123,10 @@ public class EventoItens implements EventoProgramavelJava {
 		/*try {*/
 			DynamicVO iteVO = (DynamicVO) ctx.getVo();
 			hnd = JapeSession.open();
+			
 			JapeWrapper cabDAO = JapeFactory.dao(DynamicEntityNames.CABECALHO_NOTA);
 			DynamicVO cabVO = cabDAO.findOne(" AD_CODOS = " +  iteVO.asBigDecimal("CODOOS"));
+			
 			JapeWrapper itemDAO = JapeFactory.dao(DynamicEntityNames.ITEM_NOTA);
 			DynamicVO itemVO = itemDAO.findOne("NUNOTA = " + cabVO.asBigDecimal("NUNOTA") +
 					"AND SEQUENCIA = " + iteVO.asBigDecimal("SEQITE"));
@@ -194,11 +196,13 @@ public class EventoItens implements EventoProgramavelJava {
 		itemVO.setProperty("CODPROD", item.getCodprod());
 		itemVO.setProperty("QTDNEG", item.getQtdneg());
 		itemVO.setProperty("VLRDESC", item.getVlrdesc());
+		itemVO.setProperty("PERCDESC", item.getPercdesc());
 		itemVO.setProperty("VLRUNIT", vlrunit);
 		itemVO.setProperty("VLRTOT", vlrunit.multiply(item.getQtdneg()));
 
 		CentralItemNota itemNota = new CentralItemNota();
 		itemNota.recalcularValores("VLRUNIT", vlrunit.toString(), itemVO, cabVO.asBigDecimal("NUNOTA"));
+		//itemNota.recalcularValores("VLRDESC", item.getVlrdesc().toString(), itemVO, cabVO.asBigDecimal("NUNOTA"));
 
 		List<DynamicVO> itensFatura = new ArrayList<DynamicVO>();
 		itensFatura.add(itemVO);
