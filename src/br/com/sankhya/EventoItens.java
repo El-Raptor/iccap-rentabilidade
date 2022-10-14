@@ -50,14 +50,11 @@ public class EventoItens implements EventoProgramavelJava {
 
 		BigDecimal codoos = iteVO.asBigDecimal("CODOOS");
 
-		JapeWrapper oscabDAO = JapeFactory.dao("AD_OOSCAB");
-		DynamicVO oscabVO = oscabDAO.findByPK(codoos);
-
-		JapeWrapper cabDAO = JapeFactory.dao(DynamicEntityNames.CABECALHO_NOTA);
-		DynamicVO cabVO = cabDAO.findOne(" AD_CODOS = " + codoos);
+		DynamicVO oscabVO = getCabOSVO(codoos);
+		DynamicVO cabVO = getCabVO(codoos);
 
 		if (oscabVO.asString("TIPOLANCAMENTO").equals("O")) {
-			
+
 			/* Inicializando item */
 			Item item = ItemDAO.read(iteVO);
 
@@ -80,19 +77,15 @@ public class EventoItens implements EventoProgramavelJava {
 
 		// try {
 		hnd = JapeSession.open();
-		DynamicVO itemVO = (DynamicVO) ctx.getVo();
+		DynamicVO pecaVO = (DynamicVO) ctx.getVo();
 
 		Item item = new Item();
-		item = ItemDAO.read(itemVO);
+		item = ItemDAO.read(pecaVO);
 
-		// TODO: Fazer um método para buscar o VO da CAB.
-		BigDecimal codoos = itemVO.asBigDecimal("CODOOS");
+		BigDecimal codoos = pecaVO.asBigDecimal("CODOOS");
 
-		JapeWrapper cabDAO = JapeFactory.dao(DynamicEntityNames.CABECALHO_NOTA);
-		DynamicVO cabVO = cabDAO.findOne(" AD_CODOS = " + codoos);
-
-		JapeWrapper iteDAO = JapeFactory.dao(DynamicEntityNames.ITEM_NOTA);
-		DynamicVO iteVO = iteDAO.findByPK(cabVO.asBigDecimal("NUNOTA"), itemVO.asBigDecimal("SEQITE"));
+		DynamicVO cabVO = getCabVO(codoos);
+		DynamicVO iteVO = getItemVO(cabVO.asBigDecimal("NUNOTA"), pecaVO.asBigDecimal("CODITE"));
 
 		atualizarItemNota(item, iteVO, cabVO);
 
@@ -107,26 +100,23 @@ public class EventoItens implements EventoProgramavelJava {
 	@Override
 	public void beforeDelete(PersistenceEvent ctx) throws Exception {
 		JapeSession.SessionHandle hnd = null;
-		//boolean teste = true;
-		/*try {*/
-			DynamicVO iteVO = (DynamicVO) ctx.getVo();
-			hnd = JapeSession.open();
-			
-			JapeWrapper cabDAO = JapeFactory.dao(DynamicEntityNames.CABECALHO_NOTA);
-			DynamicVO cabVO = cabDAO.findOne(" AD_CODOS = " +  iteVO.asBigDecimal("CODOOS"));
-			
-			JapeWrapper itemDAO = JapeFactory.dao(DynamicEntityNames.ITEM_NOTA);
-			DynamicVO itemVO = itemDAO.findOne("NUNOTA = " + cabVO.asBigDecimal("NUNOTA") +
-					"AND AD_CODITE = " + iteVO.asBigDecimal("CODITE"));
-			/*if (teste) 
-				throw new Exception("Vlr Unit; " + itemVO.asBigDecimal("SEQUENCIA"));
-*/
-			deleteItem(itemVO);
-		/*} catch (Exception e) {
-			e.printStackTrace();
-		} finally {*/
-			JapeSession.close(hnd);
-		//}
+		// boolean teste = true;
+		/* try { */
+		DynamicVO pecaVO = (DynamicVO) ctx.getVo();
+		hnd = JapeSession.open();
+
+		DynamicVO cabVO = getCabVO(pecaVO.asBigDecimal("CODOOS"));
+		DynamicVO itemVO = getItemVO(cabVO.asBigDecimal("NUNOTA"), pecaVO.asBigDecimal("CODITE"));
+		/*
+		 * if (teste) throw new Exception("Vlr Unit; " +
+		 * itemVO.asBigDecimal("SEQUENCIA"));
+		 */
+		deleteItem(itemVO);
+		/*
+		 * } catch (Exception e) { e.printStackTrace(); } finally {
+		 */
+		JapeSession.close(hnd);
+		// }
 	}
 
 	private void adicionaItemPedido(DynamicVO nota, Item item) throws Exception {
@@ -203,17 +193,54 @@ public class EventoItens implements EventoProgramavelJava {
 		// Variáveis do sistema nos quais permitem recalcular o financeiro
 		JapeSessionContext.putProperty("br.com.sankhya.com.CentralCompraVenda", Boolean.TRUE);
 		JapeSessionContext.putProperty("ItemNota.incluindo.alterando.pela.central", Boolean.TRUE);
-		
+
 		EntityFacade dwfFacade = EntityFacadeFactory.getDWFFacade();
 		ServiceContext service = ServiceContext.getCurrent();
 		EntityDAO dao = dwfFacade.getDAOInstance(DynamicEntityNames.ITEM_NOTA);
-		Object [] keys = {itemVO.asBigDecimal("NUNOTA"), itemVO.asBigDecimal("SEQUENCIA")};
+		Object[] keys = { itemVO.asBigDecimal("NUNOTA"), itemVO.asBigDecimal("SEQUENCIA") };
 		PersistentLocalEntity entity = dwfFacade.findEntityByPrimaryKey(dao.getEntityName(), keys);
-		
-		
+
 		CACHelper cacHelper = new CACHelper();
 		JapeSessionContext.putProperty(ListenerParameters.CENTRAIS, Boolean.TRUE);
 		cacHelper.excluirItemNota(itemVO, dwfFacade, dao, entity, service);
+	}
+
+	private DynamicVO getCabVO(BigDecimal codoos) {
+		JapeWrapper cabDAO = JapeFactory.dao(DynamicEntityNames.CABECALHO_NOTA);
+		DynamicVO cabVO = null;
+		try {
+			cabVO = cabDAO.findOne(" AD_CODOS = " + codoos);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return cabVO;
+	}
+
+	private DynamicVO getCabOSVO(BigDecimal codoos) {
+		JapeWrapper oscabDAO = JapeFactory.dao("AD_OOSCAB");
+		DynamicVO oscabVO = null;
+		try {
+			oscabVO = oscabDAO.findByPK(codoos);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return oscabVO;
+	}
+	
+	private DynamicVO getItemVO(BigDecimal nunota, BigDecimal codite) {
+		JapeWrapper iteDAO = JapeFactory.dao(DynamicEntityNames.ITEM_NOTA);
+		DynamicVO iteVO = null;
+		try {
+			iteVO = iteDAO.findOne(" NUNOTA = " + nunota + " AND AD_CODITE = " + codite);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return iteVO;
 	}
 
 	@Override
