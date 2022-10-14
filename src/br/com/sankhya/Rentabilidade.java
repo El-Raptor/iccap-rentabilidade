@@ -78,16 +78,6 @@ public class Rentabilidade implements EventoProgramavelJava {
 			 */
 			createNovaNota(nota, nunotaTemplate);
 
-		} else {
-			DynamicVO cabOsVO = (DynamicVO) ctx.getVo();
-			BigDecimal codoosOrig = cabOsVO.asBigDecimal("CODORIGDEST");
-
-			JapeWrapper cabDAO = JapeFactory.dao(DynamicEntityNames.CABECALHO_NOTA);
-			DynamicVO cabVO = cabDAO.findOne(" AD_CODOS = " + codoosOrig);
-
-			CACHelper.faturarPedido(jdbc, cabVO.asBigDecimal("NUNOTA"), new BigDecimal(5003), "1", "P", "V", false,
-					TimeUtils.getNow(), null, false);
-
 		}
 		JapeSession.close(hnd);
 		/*
@@ -95,9 +85,6 @@ public class Rentabilidade implements EventoProgramavelJava {
 		 * //MGEModelException.throwMe(e); } finally { JapeSession.close(hnd); }
 		 */
 
-		// TODO Se for um serviço já faturado, vai verificar qual o códgigo de OS
-		// de origem, buscar o nro. único da nota dessa OS e fazer essa nota ser
-		// faturada.
 
 	}
 
@@ -117,9 +104,8 @@ public class Rentabilidade implements EventoProgramavelJava {
 		orcamento.buildNota(ctx, jdbc);
 
 		// TODO: Tipo de lançamento pode ser qualquer um para alteração.
-		if (orcamento.getTipolancamento().equals("O")) {
-			updateProperty(orcamento);
-		}
+		updateProperty(orcamento);
+		
 		/*
 		 * } catch (Exception e) { e.printStackTrace(); e.getMessage();
 		 * //MGEModelException.throwMe(e); } finally { JapeSession.close(hnd); }
