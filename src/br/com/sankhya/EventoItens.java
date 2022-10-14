@@ -196,11 +196,13 @@ public class EventoItens implements EventoProgramavelJava {
 		itemVO.setProperty("CODPROD", item.getCodprod());
 		itemVO.setProperty("QTDNEG", item.getQtdneg());
 		itemVO.setProperty("VLRDESC", item.getVlrdesc());
+		itemVO.setProperty("PERCDESC", item.getPercdesc());
 		itemVO.setProperty("VLRUNIT", vlrunit);
 		itemVO.setProperty("VLRTOT", vlrunit.multiply(item.getQtdneg()));
 
 		CentralItemNota itemNota = new CentralItemNota();
 		itemNota.recalcularValores("VLRUNIT", vlrunit.toString(), itemVO, cabVO.asBigDecimal("NUNOTA"));
+		//itemNota.recalcularValores("VLRDESC", item.getVlrdesc().toString(), itemVO, cabVO.asBigDecimal("NUNOTA"));
 
 		List<DynamicVO> itensFatura = new ArrayList<DynamicVO>();
 		itensFatura.add(itemVO);
