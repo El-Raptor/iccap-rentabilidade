@@ -11,6 +11,7 @@ public class Item {
 	private BigDecimal vlrunit;
 	private BigDecimal vlrtot;
 	private BigDecimal vlracresc;
+	private BigDecimal codite;
 	private String usoprod;
 	private String codvol;
 	
@@ -102,6 +103,14 @@ public class Item {
 
 	public void setVlracresc(BigDecimal vlracresc) {
 		this.vlracresc = vlracresc;
+	}
+
+	public BigDecimal getCodite() {
+		return codite;
+	}
+
+	public void setCodite(BigDecimal codite) {
+		this.codite = codite;
 	}
 	
 	

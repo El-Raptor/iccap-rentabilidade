@@ -1,7 +1,6 @@
 package br.com.sankhya;
 
 import java.math.BigDecimal;
-import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -13,10 +12,8 @@ import br.com.sankhya.jape.bmp.PersistentLocalEntity;
 import br.com.sankhya.jape.core.JapeSession;
 import br.com.sankhya.jape.core.JapeSession.SessionHandle;
 import br.com.sankhya.jape.dao.EntityDAO;
-import br.com.sankhya.jape.dao.JdbcWrapper;
 import br.com.sankhya.jape.event.PersistenceEvent;
 import br.com.sankhya.jape.event.TransactionContext;
-import br.com.sankhya.jape.sql.NativeSql;
 import br.com.sankhya.jape.util.JapeSessionContext;
 import br.com.sankhya.jape.vo.DynamicVO;
 import br.com.sankhya.jape.vo.PrePersistEntityState;
@@ -37,24 +34,17 @@ import br.com.sankhya.ws.ServiceContext;
  * 
  * @author Felipe S. Lopes (felipe.lopes@sankhya.com.br)
  * @since 2022-09-30
- * @version 0.1.0
+ * @version 1.0.0
  */
 public class EventoItens implements EventoProgramavelJava {
 
 	@Override
 	public void afterInsert(PersistenceEvent ctx) throws Exception {
-		// TODO Se a OS for do tipo Orçamento, sempre que uma peça for adicionada essa
-		// peça será refletida como um item na nota do orçamento.
 
 		SessionHandle hnd = null;
 
-		JdbcWrapper jdbc = null;
-
 		// try {
 		hnd = JapeSession.open();
-		EntityFacade dwfEntityFacade = EntityFacadeFactory.getDWFFacade();
-		jdbc = dwfEntityFacade.getJdbcWrapper();
-
 		// Nota nota = new Nota();
 		DynamicVO iteVO = (DynamicVO) ctx.getVo();
 
@@ -67,13 +57,11 @@ public class EventoItens implements EventoProgramavelJava {
 		DynamicVO cabVO = cabDAO.findOne(" AD_CODOS = " + codoos);
 
 		if (oscabVO.asString("TIPOLANCAMENTO").equals("O")) {
-
+			
 			/* Inicializando item */
 			Item item = ItemDAO.read(iteVO);
 
 			adicionaItemPedido(cabVO, item);
-
-			atualizaSequencia(jdbc, codoos);
 
 		}
 		/*
@@ -129,7 +117,7 @@ public class EventoItens implements EventoProgramavelJava {
 			
 			JapeWrapper itemDAO = JapeFactory.dao(DynamicEntityNames.ITEM_NOTA);
 			DynamicVO itemVO = itemDAO.findOne("NUNOTA = " + cabVO.asBigDecimal("NUNOTA") +
-					"AND SEQUENCIA = " + iteVO.asBigDecimal("SEQITE"));
+					"AND AD_CODITE = " + iteVO.asBigDecimal("CODITE"));
 			/*if (teste) 
 				throw new Exception("Vlr Unit; " + itemVO.asBigDecimal("SEQUENCIA"));
 */
@@ -170,6 +158,7 @@ public class EventoItens implements EventoProgramavelJava {
 		itemVO.setProperty("VLRDESC", item.getVlrdesc());
 		itemVO.setProperty("VLRUNIT", item.getVlrunit());
 		itemVO.setProperty("VLRTOT", item.getVlrtot());
+		itemVO.setProperty("AD_CODITE", item.getCodite());
 
 		PrePersistEntityState itemMontado = PrePersistEntityState.build(dwfFacade, DynamicEntityNames.ITEM_NOTA,
 				itemVO);
@@ -202,35 +191,12 @@ public class EventoItens implements EventoProgramavelJava {
 
 		CentralItemNota itemNota = new CentralItemNota();
 		itemNota.recalcularValores("VLRUNIT", vlrunit.toString(), itemVO, cabVO.asBigDecimal("NUNOTA"));
-		//itemNota.recalcularValores("VLRDESC", item.getVlrdesc().toString(), itemVO, cabVO.asBigDecimal("NUNOTA"));
 
 		List<DynamicVO> itensFatura = new ArrayList<DynamicVO>();
 		itensFatura.add(itemVO);
 
 		CACHelper cacHelper = new CACHelper();
 		cacHelper.incluirAlterarItem(cabVO.asBigDecimal("NUNOTA"), service, null, false, itensFatura);
-	}
-
-	private static void atualizaSequencia(JdbcWrapper jdbc, BigDecimal codoos) throws Exception {
-		NativeSql sql = new NativeSql(jdbc);
-
-		sql.appendSql("SELECT CODITE FROM AD_OOSITE WHERE CODOOS = :CODOOS ORDER BY CODITE");
-
-		sql.setNamedParameter("CODOOS", codoos);
-
-		ResultSet rset = sql.executeQuery();
-		for (int sequencia = 1; rset.next(); sequencia++) {
-			NativeSql update = new NativeSql(jdbc);
-			update.appendSql("UPDATE AD_OOSITE SET SEQITE = :SEQUENCIA ");
-			update.appendSql("WHERE CODOOS = :CODOOS AND CODITE = :CODITE");
-
-			update.setNamedParameter("SEQUENCIA", sequencia);
-			update.setNamedParameter("CODOOS", codoos);
-			update.setNamedParameter("CODITE", rset.getBigDecimal("CODITE"));
-			update.executeUpdate();
-		}
-
-		rset.close();
 	}
 
 	private static void deleteItem(DynamicVO itemVO) throws Exception {

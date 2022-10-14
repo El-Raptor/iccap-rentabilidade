@@ -11,6 +11,7 @@ public class ItemDAO {
 		Item item = new Item();
 
 		item.setCodprod(iteVO.asBigDecimal("CODPROD"));
+		item.setCodite(iteVO.asBigDecimal("CODITE"));
 		item.setCodlocalorig(new BigDecimal(12004));
 		item.setPercdesc(iteVO.asBigDecimal("PERCDESC"));
 		item.setQtdneg(iteVO.asBigDecimal("QTD"));
