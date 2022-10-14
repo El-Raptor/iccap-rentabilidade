@@ -2,6 +2,9 @@ package br.com.sankhya.model;
 
 import java.math.BigDecimal;
 
+import br.com.sankhya.dao.ItemDAO;
+import br.com.sankhya.jape.vo.DynamicVO;
+
 public class Item {
 	private BigDecimal codprod;
 	private BigDecimal codlocalorig;
@@ -17,6 +20,10 @@ public class Item {
 	
 	public Item () {
 		
+	}
+	
+	public static Item builder(DynamicVO iteVO) throws Exception {
+		return ItemDAO.read(iteVO);
 	}
 	
 	public void computedValues() {

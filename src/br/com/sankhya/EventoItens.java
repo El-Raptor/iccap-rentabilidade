@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import br.com.sankhya.dao.ItemDAO;
 import br.com.sankhya.extensions.eventoprogramavel.EventoProgramavelJava;
 import br.com.sankhya.jape.EntityFacade;
 import br.com.sankhya.jape.bmp.PersistentLocalEntity;
@@ -46,9 +45,9 @@ public class EventoItens implements EventoProgramavelJava {
 		// try {
 		hnd = JapeSession.open();
 		// Nota nota = new Nota();
-		DynamicVO iteVO = (DynamicVO) ctx.getVo();
+		DynamicVO pecaVO = (DynamicVO) ctx.getVo();
 
-		BigDecimal codoos = iteVO.asBigDecimal("CODOOS");
+		BigDecimal codoos = pecaVO.asBigDecimal("CODOOS");
 
 		DynamicVO oscabVO = getCabOSVO(codoos);
 		DynamicVO cabVO = getCabVO(codoos);
@@ -56,9 +55,9 @@ public class EventoItens implements EventoProgramavelJava {
 		if (oscabVO.asString("TIPOLANCAMENTO").equals("O")) {
 
 			/* Inicializando item */
-			Item item = ItemDAO.read(iteVO);
+			Item item = Item.builder(pecaVO);
 
-			adicionaItemPedido(cabVO, item);
+			addItemOrder(cabVO, item);
 
 		}
 		/*
@@ -79,15 +78,14 @@ public class EventoItens implements EventoProgramavelJava {
 		hnd = JapeSession.open();
 		DynamicVO pecaVO = (DynamicVO) ctx.getVo();
 
-		Item item = new Item();
-		item = ItemDAO.read(pecaVO);
+		Item item = Item.builder(pecaVO);
 
 		BigDecimal codoos = pecaVO.asBigDecimal("CODOOS");
 
 		DynamicVO cabVO = getCabVO(codoos);
 		DynamicVO iteVO = getItemVO(cabVO.asBigDecimal("NUNOTA"), pecaVO.asBigDecimal("CODITE"));
 
-		atualizarItemNota(item, iteVO, cabVO);
+		updateItemOrder(item, iteVO, cabVO);
 
 		/*
 		 * } catch (Exception e) { e.printStackTrace(); e.getMessage();
@@ -119,7 +117,14 @@ public class EventoItens implements EventoProgramavelJava {
 		// }
 	}
 
-	private void adicionaItemPedido(DynamicVO nota, Item item) throws Exception {
+	/**
+	 * Este método adiciona a peça na tabela de itens da nota do orçamento.
+	 * 
+	 * @param nota A instância do registro da tabela de notas (TGFCAB).
+	 * @param item A instância do registro da tabela de itens (TGFITE).
+	 * @throws Exception
+	 */
+	private void addItemOrder(DynamicVO nota, Item item) throws Exception {
 		Collection<PrePersistEntityState> itensNota = new ArrayList<PrePersistEntityState>();
 		AuthenticationInfo authInfo = AuthenticationInfo.getCurrent();
 
@@ -159,11 +164,21 @@ public class EventoItens implements EventoProgramavelJava {
 
 		sistema.incluirAlterarItem(nota.asBigDecimal("NUNOTA"), authInfo, itensNota, true);
 
-		atualizarItemNota(item, itemVO, nota);
+		updateItemOrder(item, itemVO, nota);
 
 	}
 
-	private static void atualizarItemNota(Item item, DynamicVO itemVO, DynamicVO cabVO) throws Exception {
+	/**
+	 * Este método atualiza o item da nota passado.
+	 * 
+	 * @param item   instância de um item com as propriedades que serão usadas para
+	 *               alterar o item no sistema.
+	 * @param itemVO instância de um registro do item de uma nota que será alterado.
+	 * @param cabVO  instância de um registro da nota que contém o item que será
+	 *               alterado.
+	 * @throws Exception
+	 */
+	private static void updateItemOrder(Item item, DynamicVO itemVO, DynamicVO cabVO) throws Exception {
 		// Variáveis do sistema nos quais permitem recalcular o financeiro
 		JapeSessionContext.putProperty("br.com.sankhya.com.CentralCompraVenda", Boolean.TRUE);
 		JapeSessionContext.putProperty("ItemNota.incluindo.alterando.pela.central", Boolean.TRUE);
@@ -189,6 +204,15 @@ public class EventoItens implements EventoProgramavelJava {
 		cacHelper.incluirAlterarItem(cabVO.asBigDecimal("NUNOTA"), service, null, false, itensFatura);
 	}
 
+	/**
+	 * Este método faz a deleção de um item da nota passado. A deleção é feita
+	 * através do método <code>excluirItemNota</code> da classe
+	 * <code>CACHelper</code>, passando a instância do registro do item, além de
+	 * outras variáveis que são buscadas nesse método.
+	 * 
+	 * @param itemVO instância do registro do item de uma nota.
+	 * @throws Exception
+	 */
 	private static void deleteItem(DynamicVO itemVO) throws Exception {
 		// Variáveis do sistema nos quais permitem recalcular o financeiro
 		JapeSessionContext.putProperty("br.com.sankhya.com.CentralCompraVenda", Boolean.TRUE);
@@ -205,6 +229,14 @@ public class EventoItens implements EventoProgramavelJava {
 		cacHelper.excluirItemNota(itemVO, dwfFacade, dao, entity, service);
 	}
 
+	/**
+	 * Este método busca a instância do pedido equivalente ao Orçamento/Ordem de
+	 * Serviço com o código passado.
+	 * 
+	 * @param codoos Código da OS passado para realizar a busca do registro do
+	 *               pedido.
+	 * @return DynamicVO cabVO instância do registro da Nota.
+	 */
 	private DynamicVO getCabVO(BigDecimal codoos) {
 		JapeWrapper cabDAO = JapeFactory.dao(DynamicEntityNames.CABECALHO_NOTA);
 		DynamicVO cabVO = null;
@@ -218,6 +250,14 @@ public class EventoItens implements EventoProgramavelJava {
 		return cabVO;
 	}
 
+	/**
+	 * Este método busca a instância do Orçamento/Ordem de Serviço com o código
+	 * passado.
+	 * 
+	 * @param codoos Código da OS passado para realizar a busca do registro do
+	 *               pedido.
+	 * @return DynamicVO oscabVO instância do registro do Orçamento/OS.
+	 */
 	private DynamicVO getCabOSVO(BigDecimal codoos) {
 		JapeWrapper oscabDAO = JapeFactory.dao("AD_OOSCAB");
 		DynamicVO oscabVO = null;
@@ -229,7 +269,16 @@ public class EventoItens implements EventoProgramavelJava {
 		}
 		return oscabVO;
 	}
-	
+
+	/**
+	 * Método que busca e retorna a instância de um registro da tabela de itens
+	 * (TGFITE).
+	 * 
+	 * @param nunota Número único do registro do pedido do item a ser buscado.
+	 * @param codite Código da peça do Orçamento/Ordem de Serviço que será buscado
+	 *               no item.
+	 * @return DynamicVO iteVO instância de um registro da tabela de itens (TGFITE).
+	 */
 	private DynamicVO getItemVO(BigDecimal nunota, BigDecimal codite) {
 		JapeWrapper iteDAO = JapeFactory.dao(DynamicEntityNames.ITEM_NOTA);
 		DynamicVO iteVO = null;
