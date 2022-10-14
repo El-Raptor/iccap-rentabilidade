@@ -104,7 +104,7 @@ public class EventoItens implements EventoProgramavelJava {
 		DynamicVO cabVO = cabDAO.findOne(" AD_CODOS = " + codoos);
 
 		JapeWrapper iteDAO = JapeFactory.dao(DynamicEntityNames.ITEM_NOTA);
-		DynamicVO iteVO = iteDAO.findByPK(cabVO.asBigDecimal("NUNOTA"), itemVO.asBigDecimal("CODITE"));
+		DynamicVO iteVO = iteDAO.findByPK(cabVO.asBigDecimal("NUNOTA"), itemVO.asBigDecimal("SEQITE"));
 
 		atualizarItemNota(item, iteVO, cabVO);
 

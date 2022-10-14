@@ -85,7 +85,6 @@ public class Rentabilidade implements EventoProgramavelJava {
 		 * //MGEModelException.throwMe(e); } finally { JapeSession.close(hnd); }
 		 */
 
-
 	}
 
 	@Override
@@ -105,7 +104,7 @@ public class Rentabilidade implements EventoProgramavelJava {
 
 		// TODO: Tipo de lançamento pode ser qualquer um para alteração.
 		updateProperty(orcamento);
-		
+
 		/*
 		 * } catch (Exception e) { e.printStackTrace(); e.getMessage();
 		 * //MGEModelException.throwMe(e); } finally { JapeSession.close(hnd); }
@@ -121,7 +120,8 @@ public class Rentabilidade implements EventoProgramavelJava {
 
 		if (nunotaTemplate == null)
 			throw new Exception("Nota modelo de operação de pedido de venda não existe ou não "
-					+ "foi cadastrada corretamentre na tela de preferencias panorama");
+					+ "foi cadastrada corretamente. Crie um modelo de nota na tela Modelo de "
+					+ "Notas de Pedidos com o mesmo Tipo de Operação");
 
 		final DynamicVO cabTemplate = cabDAO.findByPK(nunotaTemplate);
 
