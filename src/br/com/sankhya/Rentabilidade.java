@@ -36,7 +36,7 @@ import br.com.sankhya.modelcore.util.ListenerParameters;
  * 
  * @author Felipe S. Lopes (felipe.lopes@sankhya.com.br)
  * @since 2022-09-22
- * @version 0.1.0
+ * @version 1.0.0
  * 
  */
 public class Rentabilidade implements EventoProgramavelJava {
@@ -76,7 +76,7 @@ public class Rentabilidade implements EventoProgramavelJava {
 			 * if (tipolancamento.equals("O")) throw new Exception("Teste: " +
 			 * nunotaTemplate);
 			 */
-			createNovaNota(nota, nunotaTemplate);
+			createNewOrder(nota, nunotaTemplate);
 
 		}
 		JapeSession.close(hnd);
@@ -89,7 +89,6 @@ public class Rentabilidade implements EventoProgramavelJava {
 
 	@Override
 	public void afterUpdate(PersistenceEvent ctx) throws Exception {
-		// TODO Quando um orçamento ou um serviço for alterado
 
 		SessionHandle hnd = null;
 		JdbcWrapper jdbc = null;
@@ -102,7 +101,6 @@ public class Rentabilidade implements EventoProgramavelJava {
 		Nota orcamento = new Nota();
 		orcamento.buildNota(ctx, jdbc);
 
-		// TODO: Tipo de lançamento pode ser qualquer um para alteração.
 		updateProperty(orcamento);
 
 		/*
@@ -113,21 +111,44 @@ public class Rentabilidade implements EventoProgramavelJava {
 
 	}
 
-	public static DynamicVO createNovaNota(Nota orcamento, BigDecimal nunotaTemplate) throws Exception {
+	/**
+	 * Este método cria uma nova nota na tabela de notas (TGFCAB) e retorna a
+	 * instância do registro da nota recém criada.
+	 * 
+	 * O método cria objetos de acesso ao banco de dados para buscar as instâncias
+	 * de um registro de uma nota modelo e, a partir dessa nota, e de um registro de
+	 * tipo de operação, o qual será usado na nota que será inserida.
+	 * 
+	 * O método verificará a validade do número único da nota modelo passado para
+	 * que não haja eros inesperados.
+	 * 
+	 * Em seguida, o método vai criar uma nova instância de registro da nota com
+	 * base na nota do número único passado no parâmetro.
+	 * 
+	 * Por fim, o método invocará o método duplicate que irá duplicar essa instância
+	 * de registro.
+	 * 
+	 * @param orcamento      instância de uma nota com as propriedades que serão
+	 *                       usadas para criar uma nova instância de registro da
+	 *                       nota.
+	 * @param nunotaTemplate Número único da nota modelo.
+	 * @return DynamicVO instância do registro da nota recém criada.
+	 * @throws Exception
+	 */
+	public static DynamicVO createNewOrder(Nota orcamento, BigDecimal nunotaTemplate) throws Exception {
 
 		JapeWrapper cabDAO = JapeFactory.dao(DynamicEntityNames.CABECALHO_NOTA);
 		final JapeWrapper tipoOperacaoDAO = JapeFactory.dao(DynamicEntityNames.TIPO_OPERACAO);
 
 		if (nunotaTemplate == null)
-			throw new Exception("Nota modelo de operação de pedido de venda não existe ou não "
-					+ "foi cadastrada corretamente. Crie um modelo de nota na tela Modelo de "
-					+ "Notas de Pedidos com o mesmo Tipo de Operação");
+			throw new Exception("Nota modelo não existe ou não foi cadastrada corretamente."
+					+ " Crie um modelo de nota na tela Modelo de " + "Notas de Pedidos com o mesmo Tipo de Operação");
 
 		final DynamicVO cabTemplate = cabDAO.findByPK(nunotaTemplate);
 
 		if (cabTemplate == null)
-			throw new Exception("Nota modelo de operação de pedido de venda não existe ou não foi "
-					+ "cadastrada corretamentre na tela de preferencias panorama");
+			throw new Exception("Nota modelo não existe ou não foi cadastrada corretamente."
+					+ " Crie um modelo de nota na tela Modelo de " + "Notas de Pedidos com o mesmo Tipo de Operação");
 
 		final DynamicVO topDoModelo = tipoOperacaoDAO.findByPK(cabTemplate.asBigDecimal("CODTIPOPER"),
 				cabTemplate.asTimestamp("DHTIPOPER"));
@@ -151,13 +172,21 @@ public class Rentabilidade implements EventoProgramavelJava {
 		cabTemplate.setProperty("CIF_FOB", "S");
 
 		// duplica e cria a nova nunota
-		DynamicVO novaNota = duplicar(cabDAO, cabTemplate);
+		DynamicVO novaNota = duplicate(cabDAO, cabTemplate);
 
 		return novaNota;
 	}
 
+	/**
+	 * Método que irá duplicar uma instância de registro de nota.
+	 * 
+	 * @param dao      Objeto de acesso ao banco de dados.
+	 * @param modeloVO Instância do registro da nota modelo.
+	 * @return instânci de registro de nota duplicada.
+	 * @throws Exception
+	 */
 	@SuppressWarnings("unchecked")
-	public static DynamicVO duplicar(JapeWrapper dao, DynamicVO modeloVO) throws Exception {
+	public static DynamicVO duplicate(JapeWrapper dao, DynamicVO modeloVO) throws Exception {
 		FluidCreateVO fluidCreateVO = dao.create();
 		Iterator<VOProperty> iterator = modeloVO.iterator();
 
@@ -169,6 +198,13 @@ public class Rentabilidade implements EventoProgramavelJava {
 		return fluidCreateVO.save();
 	}
 
+	/**
+	 * Método que atualiza um nota.
+	 * 
+	 * @param nota instância de uma nota com as propriedades que serão usadas para
+	 *             atualizar uma nota.
+	 * @throws Exception
+	 */
 	private void updateProperty(Nota nota) throws Exception {
 		EntityFacade entityFacade = EntityFacadeFactory.getDWFFacade();
 		EntityDAO dao = entityFacade.getDAOInstance(DynamicEntityNames.CABECALHO_NOTA);

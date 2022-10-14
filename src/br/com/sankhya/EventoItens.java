@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import br.com.sankhya.dao.ItemDAO;
+import br.com.sankhya.dao.NotaDAO;
 import br.com.sankhya.extensions.eventoprogramavel.EventoProgramavelJava;
 import br.com.sankhya.jape.EntityFacade;
 import br.com.sankhya.jape.bmp.PersistentLocalEntity;
@@ -16,8 +18,6 @@ import br.com.sankhya.jape.event.TransactionContext;
 import br.com.sankhya.jape.util.JapeSessionContext;
 import br.com.sankhya.jape.vo.DynamicVO;
 import br.com.sankhya.jape.vo.PrePersistEntityState;
-import br.com.sankhya.jape.wrapper.JapeFactory;
-import br.com.sankhya.jape.wrapper.JapeWrapper;
 import br.com.sankhya.model.Item;
 import br.com.sankhya.modelcore.auth.AuthenticationInfo;
 import br.com.sankhya.modelcore.comercial.CentralItemNota;
@@ -49,8 +49,8 @@ public class EventoItens implements EventoProgramavelJava {
 
 		BigDecimal codoos = pecaVO.asBigDecimal("CODOOS");
 
-		DynamicVO oscabVO = getCabOSVO(codoos);
-		DynamicVO cabVO = getCabVO(codoos);
+		DynamicVO oscabVO = NotaDAO.getCabOSVO(codoos);
+		DynamicVO cabVO = NotaDAO.getCabVO(codoos);
 
 		if (oscabVO.asString("TIPOLANCAMENTO").equals("O")) {
 
@@ -82,8 +82,8 @@ public class EventoItens implements EventoProgramavelJava {
 
 		BigDecimal codoos = pecaVO.asBigDecimal("CODOOS");
 
-		DynamicVO cabVO = getCabVO(codoos);
-		DynamicVO iteVO = getItemVO(cabVO.asBigDecimal("NUNOTA"), pecaVO.asBigDecimal("CODITE"));
+		DynamicVO cabVO = NotaDAO.getCabVO(codoos);
+		DynamicVO iteVO = ItemDAO.getItemVO(cabVO.asBigDecimal("NUNOTA"), pecaVO.asBigDecimal("CODITE"));
 
 		updateItemOrder(item, iteVO, cabVO);
 
@@ -103,8 +103,8 @@ public class EventoItens implements EventoProgramavelJava {
 		DynamicVO pecaVO = (DynamicVO) ctx.getVo();
 		hnd = JapeSession.open();
 
-		DynamicVO cabVO = getCabVO(pecaVO.asBigDecimal("CODOOS"));
-		DynamicVO itemVO = getItemVO(cabVO.asBigDecimal("NUNOTA"), pecaVO.asBigDecimal("CODITE"));
+		DynamicVO cabVO = NotaDAO.getCabVO(pecaVO.asBigDecimal("CODOOS"));
+		DynamicVO itemVO = ItemDAO.getItemVO(cabVO.asBigDecimal("NUNOTA"), pecaVO.asBigDecimal("CODITE"));
 		/*
 		 * if (teste) throw new Exception("Vlr Unit; " +
 		 * itemVO.asBigDecimal("SEQUENCIA"));
@@ -227,69 +227,6 @@ public class EventoItens implements EventoProgramavelJava {
 		CACHelper cacHelper = new CACHelper();
 		JapeSessionContext.putProperty(ListenerParameters.CENTRAIS, Boolean.TRUE);
 		cacHelper.excluirItemNota(itemVO, dwfFacade, dao, entity, service);
-	}
-
-	/**
-	 * Este método busca a instância do pedido equivalente ao Orçamento/Ordem de
-	 * Serviço com o código passado.
-	 * 
-	 * @param codoos Código da OS passado para realizar a busca do registro do
-	 *               pedido.
-	 * @return DynamicVO cabVO instância do registro da Nota.
-	 */
-	private DynamicVO getCabVO(BigDecimal codoos) {
-		JapeWrapper cabDAO = JapeFactory.dao(DynamicEntityNames.CABECALHO_NOTA);
-		DynamicVO cabVO = null;
-		try {
-			cabVO = cabDAO.findOne(" AD_CODOS = " + codoos);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		return cabVO;
-	}
-
-	/**
-	 * Este método busca a instância do Orçamento/Ordem de Serviço com o código
-	 * passado.
-	 * 
-	 * @param codoos Código da OS passado para realizar a busca do registro do
-	 *               pedido.
-	 * @return DynamicVO oscabVO instância do registro do Orçamento/OS.
-	 */
-	private DynamicVO getCabOSVO(BigDecimal codoos) {
-		JapeWrapper oscabDAO = JapeFactory.dao("AD_OOSCAB");
-		DynamicVO oscabVO = null;
-		try {
-			oscabVO = oscabDAO.findByPK(codoos);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return oscabVO;
-	}
-
-	/**
-	 * Método que busca e retorna a instância de um registro da tabela de itens
-	 * (TGFITE).
-	 * 
-	 * @param nunota Número único do registro do pedido do item a ser buscado.
-	 * @param codite Código da peça do Orçamento/Ordem de Serviço que será buscado
-	 *               no item.
-	 * @return DynamicVO iteVO instância de um registro da tabela de itens (TGFITE).
-	 */
-	private DynamicVO getItemVO(BigDecimal nunota, BigDecimal codite) {
-		JapeWrapper iteDAO = JapeFactory.dao(DynamicEntityNames.ITEM_NOTA);
-		DynamicVO iteVO = null;
-		try {
-			iteVO = iteDAO.findOne(" NUNOTA = " + nunota + " AND AD_CODITE = " + codite);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		return iteVO;
 	}
 
 	@Override

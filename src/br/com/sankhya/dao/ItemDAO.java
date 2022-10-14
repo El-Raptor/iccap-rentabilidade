@@ -3,7 +3,10 @@ package br.com.sankhya.dao;
 import java.math.BigDecimal;
 
 import br.com.sankhya.jape.vo.DynamicVO;
+import br.com.sankhya.jape.wrapper.JapeFactory;
+import br.com.sankhya.jape.wrapper.JapeWrapper;
 import br.com.sankhya.model.Item;
+import br.com.sankhya.modelcore.util.DynamicEntityNames;
 
 public class ItemDAO {
 
@@ -22,6 +25,28 @@ public class ItemDAO {
 		item.computedValues();
 
 		return item;
+	}
+
+	/**
+	 * Método que busca e retorna a instância de um registro da tabela de itens
+	 * (TGFITE).
+	 * 
+	 * @param nunota Número único do registro do pedido do item a ser buscado.
+	 * @param codite Código da peça do Orçamento/Ordem de Serviço que será buscado
+	 *               no item.
+	 * @return DynamicVO iteVO instância de um registro da tabela de itens (TGFITE).
+	 */
+	public static DynamicVO getItemVO(BigDecimal nunota, BigDecimal codite) {
+		JapeWrapper iteDAO = JapeFactory.dao(DynamicEntityNames.ITEM_NOTA);
+		DynamicVO iteVO = null;
+		try {
+			iteVO = iteDAO.findOne(" NUNOTA = " + nunota + " AND AD_CODITE = " + codite);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return iteVO;
 	}
 
 	private static BigDecimal coalesce(DynamicVO iteVO, String field) {
