@@ -8,8 +8,25 @@ import br.com.sankhya.jape.wrapper.JapeWrapper;
 import br.com.sankhya.model.Item;
 import br.com.sankhya.modelcore.util.DynamicEntityNames;
 
+/**
+ * Essa classe faz conexão com o banco de dados para buscar dados relacionados à
+ * classe Item.
+ * 
+ * @author Felipe S. Lopes (felipe.lopes@sankhya.com.br)
+ * @since 2022-09-30
+ * @version 1.0.0
+ * 
+ */
 public class ItemDAO {
 
+	/**
+	 * Esse método obtém os dados de uma instância de registro de peça do orçamento
+	 * e os insere na instância da classe Item.
+	 * 
+	 * @param iteVO instância de registro de peça do orçamento;
+	 * @return Instância da classe Item.
+	 * @throws Exception
+	 */
 	public static Item read(DynamicVO iteVO) throws Exception {
 		Item item = new Item();
 
@@ -49,6 +66,14 @@ public class ItemDAO {
 		return iteVO;
 	}
 
+	/**
+	 * Esse retorna o valor de um campo buscado da instância de um registro da peça
+	 * ou, caso este seja nulo, retorna 0 (zero).
+	 * 
+	 * @param iteVO instância de um registro da peça.
+	 * @param field campo a ser buscado.
+	 * @return retorna o valor do campo buscado ou 0 (zero).
+	 */
 	private static BigDecimal coalesce(DynamicVO iteVO, String field) {
 		return iteVO.asBigDecimal(field) == null ? BigDecimal.ZERO : iteVO.asBigDecimal(field);
 	}

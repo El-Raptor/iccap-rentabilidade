@@ -11,8 +11,26 @@ import br.com.sankhya.jape.wrapper.JapeWrapper;
 import br.com.sankhya.model.Nota;
 import br.com.sankhya.modelcore.util.DynamicEntityNames;
 
+/**
+ * Essa classe faz conexão com o banco de dados para buscar dados relacionados à
+ * classe Nota.
+ * 
+ * @author Felipe S. Lopes (felipe.lopes@sankhya.com.br)
+ * @since 2022-09-28
+ * @version 1.0.0
+ * 
+ */
 public class NotaDAO {
 
+	/**
+	 * Lê e busca um registro da tabela AD_CADOOS e alimenta os dados em uma
+	 * instância de Nota.
+	 * 
+	 * @param cabosVO Instância do registro de orçamento.
+	 * @param jdbc    Conector do banco de dados.
+	 * @return Nota uma instância de nota.
+	 * @throws Exception
+	 */
 	public static Nota read(DynamicVO cabosVO, JdbcWrapper jdbc) throws Exception {
 		// TODO: Colocar o DynamicVO como parâmetro.
 		Nota nota = new Nota();
@@ -32,7 +50,16 @@ public class NotaDAO {
 
 		return nota;
 	}
-	
+
+	/**
+	 * Lê e busca um registro da tabela AD_CADOOS e alimenta os dados em uma
+	 * instância de Nota com um NUNOTA.
+	 * 
+	 * @param cabosVO Instância do registro de orçamento.
+	 * @param jdbc    Conector do banco de dados.
+	 * @return Nota uma instância de nota.
+	 * @throws Exception
+	 */
 	public static Nota readOrder(DynamicVO cabosVO, JdbcWrapper jdbc) throws Exception {
 		// TODO: Colocar o DynamicVO como parâmetro.
 		Nota nota = new Nota();
@@ -49,28 +76,9 @@ public class NotaDAO {
 		nota.setDesctot(cabosVO.asBigDecimal("DESCTOTAL"));
 		nota.setCodmotivoabert(cabosVO.asBigDecimal("CODMOTIVOABERT"));
 		nota.setCodtipoper(readCodtipoper(nota.getCodmotivoabert(), jdbc));
-		nota.setNunota(getNunota(jdbc, cabosVO.asBigDecimal("CODOOS")));
+		nota.setNunota(getCabVO(cabosVO.asBigDecimal("CODOOS")).asBigDecimal("NUNOTA"));
 
 		return nota;
-	}
-
-	private static BigDecimal getNunota(JdbcWrapper jdbc, BigDecimal codos) throws Exception {
-		NativeSql sql = new NativeSql(jdbc);
-
-		sql.appendSql("SELECT NUNOTA ");
-		sql.appendSql("FROM TGFCAB ");
-		sql.appendSql("WHERE AD_CODOS = :CODOS");
-
-		sql.setNamedParameter("CODOS", codos);
-
-		ResultSet result = sql.executeQuery();
-
-		if (result.next())
-			return result.getBigDecimal("NUNOTA");
-
-		result.close();
-
-		return null;
 	}
 
 	/**
@@ -114,10 +122,17 @@ public class NotaDAO {
 		return oscabVO;
 	}
 
-	public static BigDecimal readNunota(JdbcWrapper jdbc, Nota nota) {
+	/**
+	 * Essa classe busca o nunota de uma nota modelo.
+	 * 
+	 * @param jdbc Conector do banco de dados.
+	 * @param nota instância de uma nota
+	 * @return o NUNOTA de uma nota modelo.
+	 */
+	public static BigDecimal readNunotaTemplate(JdbcWrapper jdbc, Nota nota) {
 		NativeSql sql = new NativeSql(jdbc);
 		BigDecimal nunotaTemplate = null;
-		
+
 		sql.appendSql("SELECT NUNOTA ");
 		sql.appendSql("FROM TGFCAB ");
 		sql.appendSql("WHERE CODTIPOPER = :CODTIPOPER AND ROWNUM = 1 ");
@@ -138,6 +153,15 @@ public class NotaDAO {
 		return nunotaTemplate;
 	}
 
+	/**
+	 * Busca o código do tipo de operação de um orçamento de acordo com o seu motivo
+	 * de abertura.
+	 * 
+	 * @param codmotivoabert código do motivo de abertura.
+	 * @param jdbc           Conector do banco de dados.
+	 * @return o código do tipo de operação do orçamento.
+	 * @throws Exception
+	 */
 	private static BigDecimal readCodtipoper(BigDecimal codmotivoabert, JdbcWrapper jdbc) throws Exception {
 		NativeSql sql = new NativeSql(jdbc);
 

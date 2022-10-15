@@ -51,12 +51,12 @@ public class Rentabilidade implements EventoProgramavelJava {
 		EntityFacade dwfEntityFacade = EntityFacadeFactory.getDWFFacade();
 		jdbc = dwfEntityFacade.getJdbcWrapper();
 
-		DynamicVO cabosVO = (DynamicVO) ctx.getVo();				
+		DynamicVO cabosVO = (DynamicVO) ctx.getVo();
 		Nota nota = Nota.builder(cabosVO, jdbc);
 
 		if (nota.getTipolancamento().equals("O")) {
 
-			BigDecimal nunotaTemplate = NotaDAO.readNunota(jdbc, nota);
+			BigDecimal nunotaTemplate = NotaDAO.readNunotaTemplate(jdbc, nota);
 
 			/*
 			 * if (tipolancamento.equals("O")) throw new Exception("Teste: " +
@@ -192,6 +192,8 @@ public class Rentabilidade implements EventoProgramavelJava {
 	 * @throws Exception
 	 */
 	private void updateProperty(Nota nota) throws Exception {
+		// TODO: Verificar porque que quando altera o CODTIPVENDA o programa retorna uma
+		// mensagem de erro.
 		EntityFacade entityFacade = EntityFacadeFactory.getDWFFacade();
 		EntityDAO dao = entityFacade.getDAOInstance(DynamicEntityNames.CABECALHO_NOTA);
 		AuthenticationInfo authInfo = AuthenticationInfo.getCurrent();
