@@ -1,0 +1,80 @@
+package br.com.sankhya.dao;
+
+import java.math.BigDecimal;
+
+import br.com.sankhya.jape.vo.DynamicVO;
+import br.com.sankhya.jape.wrapper.JapeFactory;
+import br.com.sankhya.jape.wrapper.JapeWrapper;
+import br.com.sankhya.model.Item;
+import br.com.sankhya.modelcore.util.DynamicEntityNames;
+
+/**
+ * Essa classe faz conexão com o banco de dados para buscar dados relacionados à
+ * classe Item.
+ * 
+ * @author Felipe S. Lopes (felipe.lopes@sankhya.com.br)
+ * @since 2022-09-30
+ * @version 1.0.0
+ * 
+ */
+public class ItemDAO {
+
+	/**
+	 * Esse método obtém os dados de uma instância de registro de peça do orçamento
+	 * e os insere na instância da classe Item.
+	 * 
+	 * @param iteVO instância de registro de peça do orçamento;
+	 * @return Instância da classe Item.
+	 * @throws Exception
+	 */
+	public static Item read(DynamicVO iteVO) throws Exception {
+		Item item = new Item();
+
+		item.setCodprod(iteVO.asBigDecimal("CODPROD"));
+		item.setCodite(iteVO.asBigDecimal("CODITE"));
+		item.setCodlocalorig(new BigDecimal(12004));
+		item.setPercdesc(iteVO.asBigDecimal("PERCDESC"));
+		item.setQtdneg(iteVO.asBigDecimal("QTD"));
+		item.setVlrtot(iteVO.asBigDecimal("VLRTOT"));
+		item.setVlracresc(coalesce(iteVO, "VLRACRESC"));
+		item.setVlrunit(coalesce(iteVO, "VLRUNIT"));
+		item.setVlrdesc(coalesce(iteVO, "VLRDESC"));
+		item.computedValues();
+
+		return item;
+	}
+
+	/**
+	 * Método que busca e retorna a instância de um registro da tabela de itens
+	 * (TGFITE).
+	 * 
+	 * @param nunota Número único do registro do pedido do item a ser buscado.
+	 * @param codite Código da peça do Orçamento/Ordem de Serviço que será buscado
+	 *               no item.
+	 * @return DynamicVO iteVO instância de um registro da tabela de itens (TGFITE).
+	 */
+	public static DynamicVO getItemVO(BigDecimal nunota, BigDecimal codite) {
+		JapeWrapper iteDAO = JapeFactory.dao(DynamicEntityNames.ITEM_NOTA);
+		DynamicVO iteVO = null;
+		try {
+			iteVO = iteDAO.findOne(" NUNOTA = " + nunota + " AND AD_CODITE = " + codite);
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("Erro na pesquisa do registro do item.");
+		}
+
+		return iteVO;
+	}
+
+	/**
+	 * Esse retorna o valor de um campo buscado da instância de um registro da peça
+	 * ou, caso este seja nulo, retorna 0 (zero).
+	 * 
+	 * @param iteVO instância de um registro da peça.
+	 * @param field campo a ser buscado.
+	 * @return retorna o valor do campo buscado ou 0 (zero).
+	 */
+	private static BigDecimal coalesce(DynamicVO iteVO, String field) {
+		return iteVO.asBigDecimal(field) == null ? BigDecimal.ZERO : iteVO.asBigDecimal(field);
+	}
+}
