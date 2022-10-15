@@ -59,8 +59,8 @@ public class ItemDAO {
 		try {
 			iteVO = iteDAO.findOne(" NUNOTA = " + nunota + " AND AD_CODITE = " + codite);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			System.out.println("Erro na pesquisa do registro do item.");
 		}
 
 		return iteVO;

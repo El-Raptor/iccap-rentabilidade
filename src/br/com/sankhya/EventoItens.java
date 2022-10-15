@@ -19,6 +19,7 @@ import br.com.sankhya.jape.util.JapeSessionContext;
 import br.com.sankhya.jape.vo.DynamicVO;
 import br.com.sankhya.jape.vo.PrePersistEntityState;
 import br.com.sankhya.model.Item;
+import br.com.sankhya.modelcore.MGEModelException;
 import br.com.sankhya.modelcore.auth.AuthenticationInfo;
 import br.com.sankhya.modelcore.comercial.CentralItemNota;
 import br.com.sankhya.modelcore.comercial.centrais.CACHelper;
@@ -42,79 +43,79 @@ public class EventoItens implements EventoProgramavelJava {
 
 		SessionHandle hnd = null;
 
-		// try {
-		hnd = JapeSession.open();
-		// Nota nota = new Nota();
-		DynamicVO pecaVO = (DynamicVO) ctx.getVo();
+		try {
+			hnd = JapeSession.open();
+			// Nota nota = new Nota();
+			DynamicVO pecaVO = (DynamicVO) ctx.getVo();
 
-		BigDecimal codoos = pecaVO.asBigDecimal("CODOOS");
+			BigDecimal codoos = pecaVO.asBigDecimal("CODOOS");
 
-		DynamicVO oscabVO = NotaDAO.getCabOSVO(codoos);
-		DynamicVO cabVO = NotaDAO.getCabVO(codoos);
+			DynamicVO oscabVO = NotaDAO.getCabOSVO(codoos);
+			DynamicVO cabVO = NotaDAO.getCabVO(codoos);
 
-		if (oscabVO.asString("TIPOLANCAMENTO").equals("O")) {
+			if (oscabVO.asString("TIPOLANCAMENTO").equals("O")) {
 
-			/* Inicializando item */
-			Item item = Item.builder(pecaVO);
+				/* Inicializando item */
+				Item item = Item.builder(pecaVO);
 
-			addItemOrder(cabVO, item);
+				addItemOrder(cabVO, item);
 
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			e.getMessage();
+			MGEModelException.throwMe(e);
+		} finally {
+			JapeSession.close(hnd);
 		}
-		/*
-		 * } catch (Exception e) { e.printStackTrace(); e.getMessage();
-		 * //MGEModelException.throwMe(e); } finally { JapeSession.close(hnd); }
-		 */
-		JapeSession.close(hnd);
-
 	}
 
 	@Override
 	public void afterUpdate(PersistenceEvent ctx) throws Exception {
 		SessionHandle hnd = null;
 
-		// JdbcWrapper jdbc = null;
+		try {
+			hnd = JapeSession.open();
+			DynamicVO pecaVO = (DynamicVO) ctx.getVo();
 
-		// try {
-		hnd = JapeSession.open();
-		DynamicVO pecaVO = (DynamicVO) ctx.getVo();
+			Item item = Item.builder(pecaVO);
 
-		Item item = Item.builder(pecaVO);
+			BigDecimal codoos = pecaVO.asBigDecimal("CODOOS");
 
-		BigDecimal codoos = pecaVO.asBigDecimal("CODOOS");
+			DynamicVO cabVO = NotaDAO.getCabVO(codoos);
+			DynamicVO iteVO = ItemDAO.getItemVO(cabVO.asBigDecimal("NUNOTA"), pecaVO.asBigDecimal("CODITE"));
 
-		DynamicVO cabVO = NotaDAO.getCabVO(codoos);
-		DynamicVO iteVO = ItemDAO.getItemVO(cabVO.asBigDecimal("NUNOTA"), pecaVO.asBigDecimal("CODITE"));
+			updateItemOrder(item, iteVO, cabVO);
 
-		updateItemOrder(item, iteVO, cabVO);
-
-		/*
-		 * } catch (Exception e) { e.printStackTrace(); e.getMessage();
-		 * //MGEModelException.throwMe(e); } finally { JapeSession.close(hnd); }
-		 */
-		JapeSession.close(hnd);
+		} catch (Exception e) {
+			e.printStackTrace();
+			e.getMessage();
+			MGEModelException.throwMe(e);
+		} finally {
+			JapeSession.close(hnd);
+		}
 
 	}
 
 	@Override
 	public void beforeDelete(PersistenceEvent ctx) throws Exception {
 		JapeSession.SessionHandle hnd = null;
-		// boolean teste = true;
-		/* try { */
-		DynamicVO pecaVO = (DynamicVO) ctx.getVo();
-		hnd = JapeSession.open();
 
-		DynamicVO cabVO = NotaDAO.getCabVO(pecaVO.asBigDecimal("CODOOS"));
-		DynamicVO itemVO = ItemDAO.getItemVO(cabVO.asBigDecimal("NUNOTA"), pecaVO.asBigDecimal("CODITE"));
-		/*
-		 * if (teste) throw new Exception("Vlr Unit; " +
-		 * itemVO.asBigDecimal("SEQUENCIA"));
-		 */
-		deleteItem(itemVO);
-		/*
-		 * } catch (Exception e) { e.printStackTrace(); } finally {
-		 */
-		JapeSession.close(hnd);
-		// }
+		try {
+			DynamicVO pecaVO = (DynamicVO) ctx.getVo();
+			hnd = JapeSession.open();
+
+			DynamicVO cabVO = NotaDAO.getCabVO(pecaVO.asBigDecimal("CODOOS"));
+			DynamicVO itemVO = ItemDAO.getItemVO(cabVO.asBigDecimal("NUNOTA"), pecaVO.asBigDecimal("CODITE"));
+
+			deleteItem(itemVO);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			JapeSession.close(hnd);
+		}
 	}
 
 	/**
@@ -134,11 +135,6 @@ public class EventoItens implements EventoProgramavelJava {
 
 		EntityFacade dwfFacade = EntityFacadeFactory.getDWFFacade();
 		DynamicVO itemVO = (DynamicVO) dwfFacade.getDefaultValueObjectInstance(DynamicEntityNames.ITEM_NOTA);
-
-		/*
-		 * if (item != null) throw new Exception("Vlr Unit; " + item.getVlrunit() +
-		 * " Vlr. Desc: " + item.getVlrdesc());
-		 */
 
 		itemVO.setPrimaryKey(null);
 		itemVO.setProperty("NUNOTA", nota.asBigDecimal("NUNOTA"));

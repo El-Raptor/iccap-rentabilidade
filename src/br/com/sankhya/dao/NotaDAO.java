@@ -2,6 +2,7 @@ package br.com.sankhya.dao;
 
 import java.math.BigDecimal;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import br.com.sankhya.jape.dao.JdbcWrapper;
 import br.com.sankhya.jape.sql.NativeSql;
@@ -32,7 +33,7 @@ public class NotaDAO {
 	 * @throws Exception
 	 */
 	public static Nota read(DynamicVO cabosVO, JdbcWrapper jdbc) throws Exception {
-		// TODO: Colocar o DynamicVO como parâmetro.
+
 		Nota nota = new Nota();
 
 		nota.setCodemp(cabosVO.asBigDecimal("CODEMP"));
@@ -61,7 +62,7 @@ public class NotaDAO {
 	 * @throws Exception
 	 */
 	public static Nota readOrder(DynamicVO cabosVO, JdbcWrapper jdbc) throws Exception {
-		// TODO: Colocar o DynamicVO como parâmetro.
+
 		Nota nota = new Nota();
 
 		nota.setCodemp(cabosVO.asBigDecimal("CODEMP"));
@@ -95,8 +96,8 @@ public class NotaDAO {
 		try {
 			cabVO = cabDAO.findOne(" AD_CODOS = " + codoos);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			System.out.println("Erro na pesquisa do registro da nota.");
 		}
 
 		return cabVO;
@@ -116,8 +117,8 @@ public class NotaDAO {
 		try {
 			oscabVO = oscabDAO.findByPK(codoos);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			System.out.println("Erro na pesquisa do registro do orçamento de ordem de serviço.");
 		}
 		return oscabVO;
 	}
@@ -145,11 +146,14 @@ public class NotaDAO {
 			if (result.next())
 				nunotaTemplate = result.getBigDecimal("NUNOTA");
 			result.close();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
+		} catch (SQLException e) {
 			e.printStackTrace();
+			System.out.println("Erro na busca da consulta SQL.");
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("Erro na execução da consulta SQL.");
 		}
-
+		
 		return nunotaTemplate;
 	}
 
