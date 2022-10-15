@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 import br.com.sankhya.dao.NotaDAO;
 import br.com.sankhya.jape.dao.JdbcWrapper;
-import br.com.sankhya.jape.event.PersistenceEvent;
+import br.com.sankhya.jape.vo.DynamicVO;
 
 public class Nota {
 	private BigDecimal nunota;
@@ -26,43 +26,14 @@ public class Nota {
 
 	}
 
-	public void buildNota(PersistenceEvent ctx, JdbcWrapper jdbc) throws Exception {
-		Nota nota = NotaDAO.read(ctx, jdbc);
-
-		setCodemp(nota.getCodemp());
-		setCodmotivoabert(nota.getCodmotivoabert());
-		setCodos(nota.getCodos());
-		setCodparc(nota.getCodparc());
-		setCodtipoper(nota.getCodtipoper());
-		setCodtipvenda(nota.getCodtipvenda());
-		setCodusu(nota.getCodusu());
-		setCodvend(nota.getCodvend());
-		setDesctot(nota.getDesctot());
-		setObservacao(nota.getObservacao());
-		setTipolancamento(nota.getTipolancamento());
-		setVlrnota(nota.getVlrnota());
-
-		setNunota(NotaDAO.readNunota(jdbc, getCodos()));
+	public static Nota builder(DynamicVO cabosVO, JdbcWrapper jdbc) throws Exception {
+		return NotaDAO.read(cabosVO, jdbc);
 	}
-
-	public void buildNewNota(PersistenceEvent ctx, JdbcWrapper jdbc) throws Exception {
-		Nota nota = NotaDAO.read(ctx, jdbc);
-
-		setCodemp(nota.getCodemp());
-		setCodmotivoabert(nota.getCodmotivoabert());
-		setCodos(nota.getCodos());
-		setCodparc(nota.getCodparc());
-		setCodtipoper(nota.getCodtipoper());
-		setCodtipvenda(nota.getCodtipvenda());
-		setCodusu(nota.getCodusu());
-		setCodvend(nota.getCodvend());
-		setDesctot(nota.getDesctot());
-		setObservacao(nota.getObservacao());
-		setTipolancamento(nota.getTipolancamento());
-		setVlrnota(nota.getVlrnota());
-
-		// TODO: CODOS não pode ser null
+	
+	public static Nota builder(DynamicVO cabosVO, JdbcWrapper jdbc, BigDecimal codos) throws Exception {
+		return NotaDAO.readOrder(cabosVO, jdbc);
 	}
+	
 
 	public void setTipolancamento(String tipolancamento) {
 		this.tipolancamento = tipolancamento;

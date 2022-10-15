@@ -1,11 +1,11 @@
 package br.com.sankhya;
 
 import java.math.BigDecimal;
-import java.sql.ResultSet;
 import java.util.Iterator;
 
 import com.sankhya.util.TimeUtils;
 
+import br.com.sankhya.dao.NotaDAO;
 import br.com.sankhya.extensions.eventoprogramavel.EventoProgramavelJava;
 import br.com.sankhya.jape.EntityFacade;
 import br.com.sankhya.jape.bmp.PersistentLocalEntity;
@@ -15,7 +15,6 @@ import br.com.sankhya.jape.dao.EntityDAO;
 import br.com.sankhya.jape.dao.JdbcWrapper;
 import br.com.sankhya.jape.event.PersistenceEvent;
 import br.com.sankhya.jape.event.TransactionContext;
-import br.com.sankhya.jape.sql.NativeSql;
 import br.com.sankhya.jape.util.JapeSessionContext;
 import br.com.sankhya.jape.vo.DynamicVO;
 import br.com.sankhya.jape.vo.PrePersistEntityState;
@@ -52,25 +51,12 @@ public class Rentabilidade implements EventoProgramavelJava {
 		EntityFacade dwfEntityFacade = EntityFacadeFactory.getDWFFacade();
 		jdbc = dwfEntityFacade.getJdbcWrapper();
 
-		Nota nota = new Nota();
-		nota.buildNewNota(ctx, jdbc);
+		DynamicVO cabosVO = (DynamicVO) ctx.getVo();				
+		Nota nota = Nota.builder(cabosVO, jdbc);
 
 		if (nota.getTipolancamento().equals("O")) {
 
-			BigDecimal nunotaTemplate = null;
-			NativeSql sql = new NativeSql(jdbc);
-			sql.appendSql("SELECT NUNOTA ");
-			sql.appendSql("FROM TGFCAB ");
-			sql.appendSql("WHERE CODTIPOPER = :CODTIPOPER AND ROWNUM = 1 ");
-			sql.appendSql("ORDER BY DTNEG DESC");
-			sql.setNamedParameter("CODTIPOPER", nota.getCodtipoper());
-
-			ResultSet result = sql.executeQuery();
-
-			if (result.next())
-				nunotaTemplate = result.getBigDecimal("NUNOTA");
-
-			result.close();
+			BigDecimal nunotaTemplate = NotaDAO.readNunota(jdbc, nota);
 
 			/*
 			 * if (tipolancamento.equals("O")) throw new Exception("Teste: " +
@@ -98,8 +84,8 @@ public class Rentabilidade implements EventoProgramavelJava {
 		EntityFacade dwfEntityFacade = EntityFacadeFactory.getDWFFacade();
 		jdbc = dwfEntityFacade.getJdbcWrapper();
 
-		Nota orcamento = new Nota();
-		orcamento.buildNota(ctx, jdbc);
+		DynamicVO cabosVO = (DynamicVO) ctx.getVo();
+		Nota orcamento = Nota.builder(cabosVO, jdbc, cabosVO.asBigDecimal("CODOOS"));
 
 		updateProperty(orcamento);
 
