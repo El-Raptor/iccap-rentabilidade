@@ -4,8 +4,16 @@ import java.math.BigDecimal;
 
 import br.com.sankhya.dao.NotaDAO;
 import br.com.sankhya.jape.dao.JdbcWrapper;
-import br.com.sankhya.jape.event.PersistenceEvent;
+import br.com.sankhya.jape.vo.DynamicVO;
 
+/**
+ * Essa classe representa uma nota/orçamento/ordem de serviço.
+ * 
+ * @author Felipe S. Lopes (felipe.lopes@sankhya.com.br)
+ * @since 2022-09-28
+ * @version 1.0.0
+ * 
+ */
 public class Nota {
 	private BigDecimal nunota;
 	private BigDecimal codtipoper;
@@ -26,42 +34,12 @@ public class Nota {
 
 	}
 
-	public void buildNota(PersistenceEvent ctx, JdbcWrapper jdbc) throws Exception {
-		Nota nota = NotaDAO.read(ctx, jdbc);
-
-		setCodemp(nota.getCodemp());
-		setCodmotivoabert(nota.getCodmotivoabert());
-		setCodos(nota.getCodos());
-		setCodparc(nota.getCodparc());
-		setCodtipoper(nota.getCodtipoper());
-		setCodtipvenda(nota.getCodtipvenda());
-		setCodusu(nota.getCodusu());
-		setCodvend(nota.getCodvend());
-		setDesctot(nota.getDesctot());
-		setObservacao(nota.getObservacao());
-		setTipolancamento(nota.getTipolancamento());
-		setVlrnota(nota.getVlrnota());
-
-		setNunota(NotaDAO.readNunota(jdbc, getCodos()));
+	public static Nota builder(DynamicVO cabosVO, JdbcWrapper jdbc) throws Exception {
+		return NotaDAO.read(cabosVO, jdbc);
 	}
 
-	public void buildNewNota(PersistenceEvent ctx, JdbcWrapper jdbc) throws Exception {
-		Nota nota = NotaDAO.read(ctx, jdbc);
-
-		setCodemp(nota.getCodemp());
-		setCodmotivoabert(nota.getCodmotivoabert());
-		setCodos(nota.getCodos());
-		setCodparc(nota.getCodparc());
-		setCodtipoper(nota.getCodtipoper());
-		setCodtipvenda(nota.getCodtipvenda());
-		setCodusu(nota.getCodusu());
-		setCodvend(nota.getCodvend());
-		setDesctot(nota.getDesctot());
-		setObservacao(nota.getObservacao());
-		setTipolancamento(nota.getTipolancamento());
-		setVlrnota(nota.getVlrnota());
-
-		// TODO: CODOS não pode ser null
+	public static Nota builder(DynamicVO cabosVO, JdbcWrapper jdbc, BigDecimal codos) throws Exception {
+		return NotaDAO.readOrder(cabosVO, jdbc);
 	}
 
 	public void setTipolancamento(String tipolancamento) {
@@ -175,6 +153,5 @@ public class Nota {
 	public void setCodmotivoabert(BigDecimal codmotivoabert) {
 		this.codmotivoabert = codmotivoabert;
 	}
-
 
 }

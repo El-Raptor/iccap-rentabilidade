@@ -1,28 +1,25 @@
 package br.com.sankhya;
 
 import java.math.BigDecimal;
-import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import br.com.sankhya.dao.ItemDAO;
+import br.com.sankhya.dao.NotaDAO;
 import br.com.sankhya.extensions.eventoprogramavel.EventoProgramavelJava;
 import br.com.sankhya.jape.EntityFacade;
 import br.com.sankhya.jape.bmp.PersistentLocalEntity;
 import br.com.sankhya.jape.core.JapeSession;
 import br.com.sankhya.jape.core.JapeSession.SessionHandle;
 import br.com.sankhya.jape.dao.EntityDAO;
-import br.com.sankhya.jape.dao.JdbcWrapper;
 import br.com.sankhya.jape.event.PersistenceEvent;
 import br.com.sankhya.jape.event.TransactionContext;
-import br.com.sankhya.jape.sql.NativeSql;
 import br.com.sankhya.jape.util.JapeSessionContext;
 import br.com.sankhya.jape.vo.DynamicVO;
 import br.com.sankhya.jape.vo.PrePersistEntityState;
-import br.com.sankhya.jape.wrapper.JapeFactory;
-import br.com.sankhya.jape.wrapper.JapeWrapper;
 import br.com.sankhya.model.Item;
+import br.com.sankhya.modelcore.MGEModelException;
 import br.com.sankhya.modelcore.auth.AuthenticationInfo;
 import br.com.sankhya.modelcore.comercial.CentralItemNota;
 import br.com.sankhya.modelcore.comercial.centrais.CACHelper;
@@ -37,111 +34,98 @@ import br.com.sankhya.ws.ServiceContext;
  * 
  * @author Felipe S. Lopes (felipe.lopes@sankhya.com.br)
  * @since 2022-09-30
- * @version 0.1.0
+ * @version 1.0.0
  */
 public class EventoItens implements EventoProgramavelJava {
 
 	@Override
 	public void afterInsert(PersistenceEvent ctx) throws Exception {
-		// TODO Se a OS for do tipo Orçamento, sempre que uma peça for adicionada essa
-		// peça será refletida como um item na nota do orçamento.
 
 		SessionHandle hnd = null;
 
-		JdbcWrapper jdbc = null;
+		try {
+			hnd = JapeSession.open();
+			// Nota nota = new Nota();
+			DynamicVO pecaVO = (DynamicVO) ctx.getVo();
 
-		// try {
-		hnd = JapeSession.open();
-		EntityFacade dwfEntityFacade = EntityFacadeFactory.getDWFFacade();
-		jdbc = dwfEntityFacade.getJdbcWrapper();
+			BigDecimal codoos = pecaVO.asBigDecimal("CODOOS");
 
-		// Nota nota = new Nota();
-		DynamicVO iteVO = (DynamicVO) ctx.getVo();
+			DynamicVO oscabVO = NotaDAO.getCabOSVO(codoos);
+			DynamicVO cabVO = NotaDAO.getCabVO(codoos);
 
-		BigDecimal codoos = iteVO.asBigDecimal("CODOOS");
+			if (oscabVO.asString("TIPOLANCAMENTO").equals("O")) {
 
-		JapeWrapper oscabDAO = JapeFactory.dao("AD_OOSCAB");
-		DynamicVO oscabVO = oscabDAO.findByPK(codoos);
+				/* Inicializando item */
+				Item item = Item.builder(pecaVO);
 
-		JapeWrapper cabDAO = JapeFactory.dao(DynamicEntityNames.CABECALHO_NOTA);
-		DynamicVO cabVO = cabDAO.findOne(" AD_CODOS = " + codoos);
+				addItemOrder(cabVO, item);
 
-		if (oscabVO.asString("TIPOLANCAMENTO").equals("O")) {
+			}
 
-			/* Inicializando item */
-			Item item = ItemDAO.read(iteVO);
-
-			adicionaItemPedido(cabVO, item);
-
-			atualizaSequencia(jdbc, codoos);
-
+		} catch (Exception e) {
+			e.printStackTrace();
+			e.getMessage();
+			MGEModelException.throwMe(e);
+		} finally {
+			JapeSession.close(hnd);
 		}
-		/*
-		 * } catch (Exception e) { e.printStackTrace(); e.getMessage();
-		 * //MGEModelException.throwMe(e); } finally { JapeSession.close(hnd); }
-		 */
-		JapeSession.close(hnd);
-
 	}
 
 	@Override
 	public void afterUpdate(PersistenceEvent ctx) throws Exception {
 		SessionHandle hnd = null;
 
-		// JdbcWrapper jdbc = null;
+		try {
+			hnd = JapeSession.open();
+			DynamicVO pecaVO = (DynamicVO) ctx.getVo();
 
-		// try {
-		hnd = JapeSession.open();
-		DynamicVO itemVO = (DynamicVO) ctx.getVo();
+			Item item = Item.builder(pecaVO);
 
-		Item item = new Item();
-		item = ItemDAO.read(itemVO);
+			BigDecimal codoos = pecaVO.asBigDecimal("CODOOS");
 
-		// TODO: Fazer um método para buscar o VO da CAB.
-		BigDecimal codoos = itemVO.asBigDecimal("CODOOS");
+			DynamicVO cabVO = NotaDAO.getCabVO(codoos);
+			DynamicVO iteVO = ItemDAO.getItemVO(cabVO.asBigDecimal("NUNOTA"), pecaVO.asBigDecimal("CODITE"));
 
-		JapeWrapper cabDAO = JapeFactory.dao(DynamicEntityNames.CABECALHO_NOTA);
-		DynamicVO cabVO = cabDAO.findOne(" AD_CODOS = " + codoos);
+			updateItemOrder(item, iteVO, cabVO);
 
-		JapeWrapper iteDAO = JapeFactory.dao(DynamicEntityNames.ITEM_NOTA);
-		DynamicVO iteVO = iteDAO.findByPK(cabVO.asBigDecimal("NUNOTA"), itemVO.asBigDecimal("SEQITE"));
-
-		atualizarItemNota(item, iteVO, cabVO);
-
-		/*
-		 * } catch (Exception e) { e.printStackTrace(); e.getMessage();
-		 * //MGEModelException.throwMe(e); } finally { JapeSession.close(hnd); }
-		 */
-		JapeSession.close(hnd);
+		} catch (Exception e) {
+			e.printStackTrace();
+			e.getMessage();
+			MGEModelException.throwMe(e);
+		} finally {
+			JapeSession.close(hnd);
+		}
 
 	}
 
 	@Override
 	public void beforeDelete(PersistenceEvent ctx) throws Exception {
 		JapeSession.SessionHandle hnd = null;
-		//boolean teste = true;
-		/*try {*/
-			DynamicVO iteVO = (DynamicVO) ctx.getVo();
+
+		try {
+			DynamicVO pecaVO = (DynamicVO) ctx.getVo();
 			hnd = JapeSession.open();
-			
-			JapeWrapper cabDAO = JapeFactory.dao(DynamicEntityNames.CABECALHO_NOTA);
-			DynamicVO cabVO = cabDAO.findOne(" AD_CODOS = " +  iteVO.asBigDecimal("CODOOS"));
-			
-			JapeWrapper itemDAO = JapeFactory.dao(DynamicEntityNames.ITEM_NOTA);
-			DynamicVO itemVO = itemDAO.findOne("NUNOTA = " + cabVO.asBigDecimal("NUNOTA") +
-					"AND SEQUENCIA = " + iteVO.asBigDecimal("SEQITE"));
-			/*if (teste) 
-				throw new Exception("Vlr Unit; " + itemVO.asBigDecimal("SEQUENCIA"));
-*/
+
+			DynamicVO cabVO = NotaDAO.getCabVO(pecaVO.asBigDecimal("CODOOS"));
+			DynamicVO itemVO = ItemDAO.getItemVO(cabVO.asBigDecimal("NUNOTA"), pecaVO.asBigDecimal("CODITE"));
+
 			deleteItem(itemVO);
-		/*} catch (Exception e) {
+
+		} catch (Exception e) {
 			e.printStackTrace();
-		} finally {*/
+		} finally {
 			JapeSession.close(hnd);
-		//}
+		}
 	}
 
-	private void adicionaItemPedido(DynamicVO nota, Item item) throws Exception {
+	/**
+	 * Este método adiciona a peça na tabela de itens da nota do orçamento.
+	 * 
+	 * @param nota A instância do registro da tabela de notas (TGFCAB).
+	 * @param item A instância do registro da tabela de itens (TGFITE).
+	 * @throws Exception
+	 */
+	private void addItemOrder(DynamicVO nota, Item item) throws Exception {
 		Collection<PrePersistEntityState> itensNota = new ArrayList<PrePersistEntityState>();
 		AuthenticationInfo authInfo = AuthenticationInfo.getCurrent();
 
@@ -151,11 +135,6 @@ public class EventoItens implements EventoProgramavelJava {
 
 		EntityFacade dwfFacade = EntityFacadeFactory.getDWFFacade();
 		DynamicVO itemVO = (DynamicVO) dwfFacade.getDefaultValueObjectInstance(DynamicEntityNames.ITEM_NOTA);
-
-		/*
-		 * if (item != null) throw new Exception("Vlr Unit; " + item.getVlrunit() +
-		 * " Vlr. Desc: " + item.getVlrdesc());
-		 */
 
 		itemVO.setPrimaryKey(null);
 		itemVO.setProperty("NUNOTA", nota.asBigDecimal("NUNOTA"));
@@ -170,6 +149,7 @@ public class EventoItens implements EventoProgramavelJava {
 		itemVO.setProperty("VLRDESC", item.getVlrdesc());
 		itemVO.setProperty("VLRUNIT", item.getVlrunit());
 		itemVO.setProperty("VLRTOT", item.getVlrtot());
+		itemVO.setProperty("AD_CODITE", item.getCodite());
 
 		PrePersistEntityState itemMontado = PrePersistEntityState.build(dwfFacade, DynamicEntityNames.ITEM_NOTA,
 				itemVO);
@@ -180,11 +160,21 @@ public class EventoItens implements EventoProgramavelJava {
 
 		sistema.incluirAlterarItem(nota.asBigDecimal("NUNOTA"), authInfo, itensNota, true);
 
-		atualizarItemNota(item, itemVO, nota);
+		updateItemOrder(item, itemVO, nota);
 
 	}
 
-	private static void atualizarItemNota(Item item, DynamicVO itemVO, DynamicVO cabVO) throws Exception {
+	/**
+	 * Este método atualiza o item da nota passado.
+	 * 
+	 * @param item   instância de um item com as propriedades que serão usadas para
+	 *               alterar o item no sistema.
+	 * @param itemVO instância de um registro do item de uma nota que será alterado.
+	 * @param cabVO  instância de um registro da nota que contém o item que será
+	 *               alterado.
+	 * @throws Exception
+	 */
+	private static void updateItemOrder(Item item, DynamicVO itemVO, DynamicVO cabVO) throws Exception {
 		// Variáveis do sistema nos quais permitem recalcular o financeiro
 		JapeSessionContext.putProperty("br.com.sankhya.com.CentralCompraVenda", Boolean.TRUE);
 		JapeSessionContext.putProperty("ItemNota.incluindo.alterando.pela.central", Boolean.TRUE);
@@ -202,7 +192,6 @@ public class EventoItens implements EventoProgramavelJava {
 
 		CentralItemNota itemNota = new CentralItemNota();
 		itemNota.recalcularValores("VLRUNIT", vlrunit.toString(), itemVO, cabVO.asBigDecimal("NUNOTA"));
-		//itemNota.recalcularValores("VLRDESC", item.getVlrdesc().toString(), itemVO, cabVO.asBigDecimal("NUNOTA"));
 
 		List<DynamicVO> itensFatura = new ArrayList<DynamicVO>();
 		itensFatura.add(itemVO);
@@ -211,40 +200,26 @@ public class EventoItens implements EventoProgramavelJava {
 		cacHelper.incluirAlterarItem(cabVO.asBigDecimal("NUNOTA"), service, null, false, itensFatura);
 	}
 
-	private static void atualizaSequencia(JdbcWrapper jdbc, BigDecimal codoos) throws Exception {
-		NativeSql sql = new NativeSql(jdbc);
-
-		sql.appendSql("SELECT CODITE FROM AD_OOSITE WHERE CODOOS = :CODOOS ORDER BY CODITE");
-
-		sql.setNamedParameter("CODOOS", codoos);
-
-		ResultSet rset = sql.executeQuery();
-		for (int sequencia = 1; rset.next(); sequencia++) {
-			NativeSql update = new NativeSql(jdbc);
-			update.appendSql("UPDATE AD_OOSITE SET SEQITE = :SEQUENCIA ");
-			update.appendSql("WHERE CODOOS = :CODOOS AND CODITE = :CODITE");
-
-			update.setNamedParameter("SEQUENCIA", sequencia);
-			update.setNamedParameter("CODOOS", codoos);
-			update.setNamedParameter("CODITE", rset.getBigDecimal("CODITE"));
-			update.executeUpdate();
-		}
-
-		rset.close();
-	}
-
+	/**
+	 * Este método faz a deleção de um item da nota passado. A deleção é feita
+	 * através do método <code>excluirItemNota</code> da classe
+	 * <code>CACHelper</code>, passando a instância do registro do item, além de
+	 * outras variáveis que são buscadas nesse método.
+	 * 
+	 * @param itemVO instância do registro do item de uma nota.
+	 * @throws Exception
+	 */
 	private static void deleteItem(DynamicVO itemVO) throws Exception {
 		// Variáveis do sistema nos quais permitem recalcular o financeiro
 		JapeSessionContext.putProperty("br.com.sankhya.com.CentralCompraVenda", Boolean.TRUE);
 		JapeSessionContext.putProperty("ItemNota.incluindo.alterando.pela.central", Boolean.TRUE);
-		
+
 		EntityFacade dwfFacade = EntityFacadeFactory.getDWFFacade();
 		ServiceContext service = ServiceContext.getCurrent();
 		EntityDAO dao = dwfFacade.getDAOInstance(DynamicEntityNames.ITEM_NOTA);
-		Object [] keys = {itemVO.asBigDecimal("NUNOTA"), itemVO.asBigDecimal("SEQUENCIA")};
+		Object[] keys = { itemVO.asBigDecimal("NUNOTA"), itemVO.asBigDecimal("SEQUENCIA") };
 		PersistentLocalEntity entity = dwfFacade.findEntityByPrimaryKey(dao.getEntityName(), keys);
-		
-		
+
 		CACHelper cacHelper = new CACHelper();
 		JapeSessionContext.putProperty(ListenerParameters.CENTRAIS, Boolean.TRUE);
 		cacHelper.excluirItemNota(itemVO, dwfFacade, dao, entity, service);

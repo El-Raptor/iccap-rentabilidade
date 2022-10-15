@@ -2,6 +2,17 @@ package br.com.sankhya.model;
 
 import java.math.BigDecimal;
 
+import br.com.sankhya.dao.ItemDAO;
+import br.com.sankhya.jape.vo.DynamicVO;
+
+/**
+ * Essa classe representa um item/peça.
+ * 
+ * @author Felipe S. Lopes (felipe.lopes@sankhya.com.br)
+ * @since 2022-09-30
+ * @version 1.0.0
+ * 
+ */
 public class Item {
 	private BigDecimal codprod;
 	private BigDecimal codlocalorig;
@@ -11,16 +22,21 @@ public class Item {
 	private BigDecimal vlrunit;
 	private BigDecimal vlrtot;
 	private BigDecimal vlracresc;
+	private BigDecimal codite;
 	private String usoprod;
 	private String codvol;
-	
-	public Item () {
-		
+
+	public Item() {
+
 	}
-	
+
+	public static Item builder(DynamicVO iteVO) throws Exception {
+		return ItemDAO.read(iteVO);
+	}
+
 	public void computedValues() {
 		setVlrunit((this.vlrunit.multiply(getQtdneg()).add(getVlracresc())).divide(getQtdneg(), 3,
-				BigDecimal.ROUND_HALF_UP));		
+				BigDecimal.ROUND_HALF_UP));
 		setVlrdesc(this.vlrdesc.divide(getQtdneg(), 3, BigDecimal.ROUND_HALF_UP));
 	}
 
@@ -103,7 +119,13 @@ public class Item {
 	public void setVlracresc(BigDecimal vlracresc) {
 		this.vlracresc = vlracresc;
 	}
-	
-	
-		
+
+	public BigDecimal getCodite() {
+		return codite;
+	}
+
+	public void setCodite(BigDecimal codite) {
+		this.codite = codite;
+	}
+
 }
