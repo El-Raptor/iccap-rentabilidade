@@ -13,6 +13,7 @@ import br.com.sankhya.jape.bmp.PersistentLocalEntity;
 import br.com.sankhya.jape.core.JapeSession;
 import br.com.sankhya.jape.core.JapeSession.SessionHandle;
 import br.com.sankhya.jape.dao.EntityDAO;
+import br.com.sankhya.jape.dao.JdbcWrapper;
 import br.com.sankhya.jape.event.PersistenceEvent;
 import br.com.sankhya.jape.event.TransactionContext;
 import br.com.sankhya.jape.util.JapeSessionContext;
@@ -74,9 +75,12 @@ public class EventoItens implements EventoProgramavelJava {
 	@Override
 	public void afterUpdate(PersistenceEvent ctx) throws Exception {
 		SessionHandle hnd = null;
+		JdbcWrapper jdbc = null;
 
 		try {
 			hnd = JapeSession.open();
+			EntityFacade dwfEntityFacade = EntityFacadeFactory.getDWFFacade();
+			jdbc = dwfEntityFacade.getJdbcWrapper();
 			DynamicVO pecaVO = (DynamicVO) ctx.getVo();
 
 			Item item = Item.builder(pecaVO);
@@ -85,7 +89,9 @@ public class EventoItens implements EventoProgramavelJava {
 
 			DynamicVO cabVO = NotaDAO.getCabVO(codoos);
 			DynamicVO iteVO = ItemDAO.getItemVO(cabVO.asBigDecimal("NUNOTA"), pecaVO.asBigDecimal("CODITE"));
-
+			
+			if (cabVO != null)
+				throw new Exception("Profit " + ItemDAO.getProfit(jdbc, pecaVO));
 			updateItemOrder(item, iteVO, cabVO);
 
 		} catch (Exception e) {

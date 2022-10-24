@@ -1,7 +1,11 @@
 package br.com.sankhya.dao;
 
 import java.math.BigDecimal;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
+import br.com.sankhya.jape.dao.JdbcWrapper;
+import br.com.sankhya.jape.sql.NativeSql;
 import br.com.sankhya.jape.vo.DynamicVO;
 import br.com.sankhya.jape.wrapper.JapeFactory;
 import br.com.sankhya.jape.wrapper.JapeWrapper;
@@ -64,6 +68,41 @@ public class ItemDAO {
 		}
 
 		return iteVO;
+	}
+	
+
+	/**
+	 * Essa classe busca o nunota de uma nota modelo.
+	 * 
+	 * @param jdbc Conector do banco de dados.
+	 * @param nota instância de uma nota
+	 * @return o NUNOTA de uma nota modelo.
+	 */
+	public static BigDecimal getProfit(JdbcWrapper jdbc, DynamicVO pecaVO) {
+		NativeSql sql = new NativeSql(jdbc);
+		BigDecimal profit = null;
+		
+		sql.appendSql("SELECT GET_LUCRO_ITEM_OS_ICCAP(:CODOOS, :CODITE) ");
+		sql.appendSql("FROM DUAL ");
+		
+		sql.setNamedParameter("CODOOS", pecaVO.asBigDecimal("CODOOS"));
+		sql.setNamedParameter("CODITE", pecaVO.asBigDecimal("CODITE"));
+
+		ResultSet result;
+		try {
+			result = sql.executeQuery();
+			if (result.next())
+				profit = result.getBigDecimal(1);
+			result.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("Erro na busca da consulta SQL.");
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("Erro na execução da consulta SQL.");
+		}
+		
+		return profit;
 	}
 
 	/**
