@@ -90,9 +90,10 @@ public class EventoItens implements EventoProgramavelJava {
 			DynamicVO cabVO = NotaDAO.getCabVO(codoos);
 			DynamicVO iteVO = ItemDAO.getItemVO(cabVO.asBigDecimal("NUNOTA"), pecaVO.asBigDecimal("CODITE"));
 			
-			if (cabVO != null)
-				throw new Exception("Profit " + ItemDAO.getProfit(jdbc, pecaVO));
+			
 			updateItemOrder(item, iteVO, cabVO);
+			
+			ItemDAO.updateProfit(jdbc, pecaVO);
 
 		} catch (Exception e) {
 			e.printStackTrace();

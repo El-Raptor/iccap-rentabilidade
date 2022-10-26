@@ -104,6 +104,26 @@ public class ItemDAO {
 		
 		return profit;
 	}
+	
+	public static void updateProfit(JdbcWrapper jdbc, DynamicVO pecaVO) {
+		BigDecimal perlucro = getProfit(jdbc, pecaVO);
+		
+		NativeSql sql = new NativeSql(jdbc);
+		
+		sql.appendSql("UPDATE AD_OOSITE ");
+		sql.appendSql("SET PERLUCRO = " + perlucro);
+		sql.appendSql(" WHERE CODOOS = :CODOOS AND CODITE = :CODITE");
+		
+		sql.setNamedParameter("CODOOS", pecaVO.asBigDecimal("CODOOS"));
+		sql.setNamedParameter("CODITE", pecaVO.asBigDecimal("CODITE"));
+		
+		try {
+			sql.executeUpdate();
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("Erro na execução da consulta SQL.");
+		}
+	}
 
 	/**
 	 * Esse retorna o valor de um campo buscado da instância de um registro da peça
