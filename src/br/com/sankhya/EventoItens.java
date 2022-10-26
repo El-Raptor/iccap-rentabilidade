@@ -35,7 +35,7 @@ import br.com.sankhya.ws.ServiceContext;
  * 
  * @author Felipe S. Lopes (felipe.lopes@sankhya.com.br)
  * @since 2022-09-30
- * @version 1.0.0
+ * @version 1.1.0
  */
 public class EventoItens implements EventoProgramavelJava {
 
@@ -43,9 +43,12 @@ public class EventoItens implements EventoProgramavelJava {
 	public void afterInsert(PersistenceEvent ctx) throws Exception {
 
 		SessionHandle hnd = null;
+		JdbcWrapper jdbc = null;
 
 		try {
 			hnd = JapeSession.open();
+			EntityFacade dwfEntityFacade = EntityFacadeFactory.getDWFFacade();
+			jdbc = dwfEntityFacade.getJdbcWrapper();
 			// Nota nota = new Nota();
 			DynamicVO pecaVO = (DynamicVO) ctx.getVo();
 
@@ -60,7 +63,7 @@ public class EventoItens implements EventoProgramavelJava {
 				Item item = Item.builder(pecaVO);
 
 				addItemOrder(cabVO, item);
-
+				ItemDAO.updateProfit(jdbc, pecaVO);
 			}
 
 		} catch (Exception e) {
@@ -89,10 +92,9 @@ public class EventoItens implements EventoProgramavelJava {
 
 			DynamicVO cabVO = NotaDAO.getCabVO(codoos);
 			DynamicVO iteVO = ItemDAO.getItemVO(cabVO.asBigDecimal("NUNOTA"), pecaVO.asBigDecimal("CODITE"));
-			
-			
+
 			updateItemOrder(item, iteVO, cabVO);
-			
+
 			ItemDAO.updateProfit(jdbc, pecaVO);
 
 		} catch (Exception e) {

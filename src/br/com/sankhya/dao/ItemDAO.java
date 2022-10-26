@@ -18,7 +18,7 @@ import br.com.sankhya.modelcore.util.DynamicEntityNames;
  * 
  * @author Felipe S. Lopes (felipe.lopes@sankhya.com.br)
  * @since 2022-09-30
- * @version 1.0.0
+ * @version 1.1.0
  * 
  */
 public class ItemDAO {
@@ -69,22 +69,21 @@ public class ItemDAO {
 
 		return iteVO;
 	}
-	
 
 	/**
-	 * Essa classe busca o nunota de uma nota modelo.
+	 * Esse método busca o porcentual de lucro de um item.
 	 * 
-	 * @param jdbc Conector do banco de dados.
-	 * @param nota instância de uma nota
-	 * @return o NUNOTA de uma nota modelo.
+	 * @param jdbc   Conector do banco de dados.
+	 * @param pecaVO instância de uma peça.
+	 * @return o porcentual de lucro buscado pela função do banco de dados.
 	 */
-	public static BigDecimal getProfit(JdbcWrapper jdbc, DynamicVO pecaVO) {
+	private static BigDecimal getProfit(JdbcWrapper jdbc, DynamicVO pecaVO) {
 		NativeSql sql = new NativeSql(jdbc);
 		BigDecimal profit = null;
-		
+
 		sql.appendSql("SELECT GET_LUCRO_ITEM_OS_ICCAP(:CODOOS, :CODITE) ");
 		sql.appendSql("FROM DUAL ");
-		
+
 		sql.setNamedParameter("CODOOS", pecaVO.asBigDecimal("CODOOS"));
 		sql.setNamedParameter("CODITE", pecaVO.asBigDecimal("CODITE"));
 
@@ -101,22 +100,65 @@ public class ItemDAO {
 			e.printStackTrace();
 			System.out.println("Erro na execução da consulta SQL.");
 		}
-		
+
 		return profit;
 	}
 	
-	public static void updateProfit(JdbcWrapper jdbc, DynamicVO pecaVO) {
-		BigDecimal perlucro = getProfit(jdbc, pecaVO);
-		
+	/**
+	 * Esse método busca o porcentual da margem de contribuição de um item.
+	 * 
+	 * @param jdbc   Conector do banco de dados.
+	 * @param pecaVO instância de uma peça.
+	 * @return o porcentual da margem de contribuição buscado pela função do banco de dados.
+	 */
+	private static BigDecimal getContributionMargin(JdbcWrapper jdbc, DynamicVO pecaVO) {
 		NativeSql sql = new NativeSql(jdbc);
-		
-		sql.appendSql("UPDATE AD_OOSITE ");
-		sql.appendSql("SET PERLUCRO = " + perlucro);
-		sql.appendSql(" WHERE CODOOS = :CODOOS AND CODITE = :CODITE");
-		
+		BigDecimal contMargin = null;
+
+		sql.appendSql("SELECT GET_MARG_CONTRIB_ITEM_OS_ICCAP(:CODOOS, :CODITE) ");
+		sql.appendSql("FROM DUAL ");
+
 		sql.setNamedParameter("CODOOS", pecaVO.asBigDecimal("CODOOS"));
 		sql.setNamedParameter("CODITE", pecaVO.asBigDecimal("CODITE"));
-		
+
+		ResultSet result;
+		try {
+			result = sql.executeQuery();
+			if (result.next())
+				contMargin = result.getBigDecimal(1);
+			result.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("Erro na busca da consulta SQL.");
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("Erro na execução da consulta SQL.");
+		}
+
+		return contMargin;
+	}
+
+	/**
+	 * Esse método atualiza o campo de percentual de lucro na tabela de peças.
+	 * 
+	 * @param jdbc   Conector do banco de dados.
+	 * @param pecaVO instância de uma peça.
+	 */
+	public static void updateProfit(JdbcWrapper jdbc, DynamicVO pecaVO) {
+		BigDecimal perlucro = getProfit(jdbc, pecaVO);
+		BigDecimal margcontrib = getContributionMargin(jdbc, pecaVO);
+
+		NativeSql sql = new NativeSql(jdbc);
+
+		sql.appendSql("UPDATE AD_OOSITE ");
+		sql.appendSql("SET PERLUCRO = :PERLUCRO, MARGCONTRIB = :MARGCONTRIB ");
+		sql.appendSql("WHERE CODOOS = :CODOOS AND CODITE = :CODITE");
+
+		sql.setNamedParameter("PERLUCRO", perlucro);
+		sql.setNamedParameter("MARGCONTRIB", margcontrib);
+		sql.setNamedParameter("CODOOS", pecaVO.asBigDecimal("CODOOS"));
+		sql.setNamedParameter("CODITE", pecaVO.asBigDecimal("CODITE"));
+
 		try {
 			sql.executeUpdate();
 		} catch (Exception e) {
