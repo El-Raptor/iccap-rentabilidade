@@ -94,7 +94,7 @@ public class NotaDAO {
 		JapeWrapper cabDAO = JapeFactory.dao(DynamicEntityNames.CABECALHO_NOTA);
 		DynamicVO cabVO = null;
 		try {
-			cabVO = cabDAO.findOne(" AD_CODOS = " + codoos);
+			cabVO = cabDAO.findOne(" AD_CODOS = " + codoos + " AND TIPMOV = 'P'");
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.out.println("Erro na pesquisa do registro da nota.");
