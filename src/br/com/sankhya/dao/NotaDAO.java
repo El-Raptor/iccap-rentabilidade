@@ -3,6 +3,7 @@ package br.com.sankhya.dao;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 
 import br.com.sankhya.jape.dao.JdbcWrapper;
 import br.com.sankhya.jape.sql.NativeSql;
@@ -78,6 +79,8 @@ public class NotaDAO {
 		nota.setCodmotivoabert(cabosVO.asBigDecimal("CODMOTIVOABERT"));
 		nota.setCodtipoper(readCodtipoper(nota.getCodmotivoabert(), jdbc));
 		nota.setNunota(getCabVO(cabosVO.asBigDecimal("CODOOS")).asBigDecimal("NUNOTA"));
+		nota.setDhtipoper(readLastDate(nota.getCodtipoper(), "TGFTOP", jdbc));
+		nota.setDhtipvenda(readLastDate(nota.getCodtipvenda(), "TGFTPV", jdbc));
 
 		return nota;
 	}
@@ -189,4 +192,29 @@ public class NotaDAO {
 
 	}
 
+	private static Timestamp readLastDate(BigDecimal fieldValue, String table, JdbcWrapper jdbc) throws Exception {
+		NativeSql sql = new NativeSql(jdbc);
+		String field = "";
+
+		if (table.equals("TGFTOP"))
+			field = "CODTIPOPER";
+		else
+			field = "CODTIPVENDA";
+		
+		sql.appendSql("SELECT MAX(DHALTER) ");
+		sql.appendSql("FROM " + table);
+		sql.appendSql(" WHERE " + field + " = :FIELD ");
+
+		sql.setNamedParameter("FIELD", fieldValue);
+
+		ResultSet result = sql.executeQuery();
+
+		if (result.next())
+			return result.getTimestamp(1);
+
+		result.close();
+
+		return null;
+
+	}
 }

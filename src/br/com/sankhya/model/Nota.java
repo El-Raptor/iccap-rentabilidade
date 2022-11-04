@@ -1,6 +1,7 @@
 package br.com.sankhya.model;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 
 import br.com.sankhya.dao.NotaDAO;
 import br.com.sankhya.jape.dao.JdbcWrapper;
@@ -17,10 +18,12 @@ import br.com.sankhya.jape.vo.DynamicVO;
 public class Nota {
 	private BigDecimal nunota;
 	private BigDecimal codtipoper;
+	private Timestamp dhtipoper;
 	private BigDecimal tipmov;
 	private BigDecimal codparc;
 	private BigDecimal codemp;
 	private BigDecimal codtipvenda;
+	private Timestamp dhtipvenda;
 	private BigDecimal codusu;
 	private BigDecimal codvend;
 	private BigDecimal codos;
@@ -152,6 +155,22 @@ public class Nota {
 
 	public void setCodmotivoabert(BigDecimal codmotivoabert) {
 		this.codmotivoabert = codmotivoabert;
+	}
+
+	public Timestamp getDhtipoper() {
+		return dhtipoper;
+	}
+
+	public void setDhtipoper(Timestamp dhtipoper) {
+		this.dhtipoper = dhtipoper;
+	}
+
+	public Timestamp getDhtipvenda() {
+		return dhtipvenda;
+	}
+
+	public void setDhtipvenda(Timestamp dhtipvenda) {
+		this.dhtipvenda = dhtipvenda;
 	}
 
 }
