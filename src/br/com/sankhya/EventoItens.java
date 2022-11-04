@@ -76,7 +76,7 @@ public class EventoItens implements EventoProgramavelJava {
 	}
 
 	@Override
-	public void afterUpdate(PersistenceEvent ctx) throws Exception {
+	public void beforeUpdate(PersistenceEvent ctx) throws Exception {
 		SessionHandle hnd = null;
 		JdbcWrapper jdbc = null;
 
@@ -94,7 +94,7 @@ public class EventoItens implements EventoProgramavelJava {
 			DynamicVO iteVO = ItemDAO.getItemVO(cabVO.asBigDecimal("NUNOTA"), pecaVO.asBigDecimal("CODITE"));
 
 			updateItemOrder(item, iteVO, cabVO);
-
+			
 			ItemDAO.updateProfit(jdbc, pecaVO);
 
 		} catch (Exception e) {
@@ -247,7 +247,7 @@ public class EventoItens implements EventoProgramavelJava {
 	}
 
 	@Override
-	public void beforeUpdate(PersistenceEvent paramPersistenceEvent) throws Exception {
+	public void afterUpdate(PersistenceEvent paramPersistenceEvent) throws Exception {
 	}
 
 }

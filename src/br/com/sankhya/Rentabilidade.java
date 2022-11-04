@@ -36,7 +36,7 @@ import br.com.sankhya.modelcore.util.ListenerParameters;
  * 
  * @author Felipe S. Lopes (felipe.lopes@sankhya.com.br)
  * @since 2022-09-22
- * @version 1.0.0
+ * @version 1.1.1
  * 
  */
 public class Rentabilidade implements EventoProgramavelJava {
@@ -63,6 +63,7 @@ public class Rentabilidade implements EventoProgramavelJava {
 				 * if (tipolancamento.equals("O")) throw new Exception("Teste: " +
 				 * nunotaTemplate);
 				 */
+
 				createNewOrder(nota, nunotaTemplate);
 
 			}
@@ -89,6 +90,9 @@ public class Rentabilidade implements EventoProgramavelJava {
 
 			DynamicVO cabosVO = (DynamicVO) ctx.getVo();
 			Nota orcamento = Nota.builder(cabosVO, jdbc, cabosVO.asBigDecimal("CODOOS"));
+			
+			/*if (orcamento != null)
+				throw new Exception("Orc: " + orcamento.getCodtipvenda());*/
 
 			updateProperty(orcamento);
 		} catch (MGEModelException e) {
@@ -128,9 +132,10 @@ public class Rentabilidade implements EventoProgramavelJava {
 	 *                       nota.
 	 * @param nunotaTemplate Número único da nota modelo.
 	 * @return DynamicVO instância do registro da nota recém criada.
+	 * @throws MGEModelException 
 	 * @throws Exception
 	 */
-	public static DynamicVO createNewOrder(Nota orcamento, BigDecimal nunotaTemplate) {
+	public static DynamicVO createNewOrder(Nota orcamento, BigDecimal nunotaTemplate) throws MGEModelException {
 		DynamicVO novaNota = null;
 		try {
 
@@ -172,11 +177,17 @@ public class Rentabilidade implements EventoProgramavelJava {
 
 			// duplica e cria a nova nunota
 			novaNota = duplicate(cabDAO, cabTemplate);
+		} catch (MGEModelException e) {
+			e.printStackTrace();
+			e.getMessage();
+			MGEModelException.throwMe(e);
 		} catch (NullPointerException e) {
 			e.printStackTrace();
 			e.getMessage();
+			MGEModelException.throwMe(e);
 		} catch (Exception e) {
 			e.printStackTrace();
+			MGEModelException.throwMe(e);
 		}
 
 		return novaNota;
@@ -235,6 +246,8 @@ public class Rentabilidade implements EventoProgramavelJava {
 			newVO.setProperty("VLRDESCTOT", nota.getDesctot());
 			newVO.setProperty("AD_CODOS", nota.getCodos());
 			newVO.setProperty("CODTIPOPER", nota.getCodtipoper());
+			newVO.setProperty("DHTIPOPER", nota.getDhtipoper());
+			newVO.setProperty("DHTIPVENDA", nota.getDhtipvenda());
 
 			PrePersistEntityState cabState = PrePersistEntityState.build(entityFacade,
 					DynamicEntityNames.CABECALHO_NOTA, newVO, oldVO, entity);
