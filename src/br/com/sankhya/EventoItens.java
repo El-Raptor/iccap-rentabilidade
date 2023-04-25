@@ -65,7 +65,7 @@ public class EventoItens implements EventoProgramavelJava {
 				DynamicVO itemVO = addItemOrder(cabVO, item);
 				item.setSequencia(itemVO.asBigDecimal("SEQUENCIA"));
 				
-				/* Vincula o Nro. da Nota criada no orçamento da OS. */
+				/* Vincula a sequência criada ao orçamento da OS. */
 				ItemDAO.setSequencia(jdbc, item);
 				ItemDAO.updateProfit(jdbc, pecaVO);
 				
