@@ -31,11 +31,11 @@ public class ItemDAO {
 	 * @return Instância da classe Item.
 	 * @throws Exception
 	 */
-	public static Item read(DynamicVO pecaVO) throws Exception {
+	public static Item read(DynamicVO pecaVO, String entityName) throws Exception {
 		Item item = new Item();
 
 		item.setCodoos(pecaVO.asBigDecimal("CODOOS"));
-		item.setCodite(pecaVO.asBigDecimal("CODITE"));
+		item.setCodite(getCodite(pecaVO, entityName));
 		item.setCodprod(pecaVO.asBigDecimal("CODPROD"));
 		item.setCodlocalorig(new BigDecimal(12004));
 		item.setPercdesc(pecaVO.asBigDecimal("PERCDESC"));
@@ -48,25 +48,27 @@ public class ItemDAO {
 
 		return item;
 	}
-	
+
 	/**
 	 * Este método vincula a sequência do item criado ao orçamento atual.
 	 * 
-	 * @param jdbc Conector do banco de dados.
-	 * @param item Entidade nota no qual possui as informações necessárias para a
-	 *             alteração.
+	 * @param jdbc       Conector do banco de dados.
+	 * @param item       Entidade nota no qual possui as informações necessárias
+	 *                   para a alteração.
+	 * @param entityName nome da entidade alvo atual.
 	 */
-	public static void setSequencia(JdbcWrapper jdbc, Item item) {
+	public static void setSequencia(JdbcWrapper jdbc, Item item, String entityName) {
 		NativeSql sql = new NativeSql(jdbc);
 
 		sql.appendSql(" UPDATE ");
-		sql.appendSql("    AD_OOSITE");
+		sql.appendSql("    :ENTIDADE");
 		sql.appendSql(" SET ");
 		sql.appendSql("    SEQUENCIA = :SEQUENCIA");
 		sql.appendSql(" WHERE");
 		sql.appendSql("    CODOOS = :CODOOS");
 		sql.appendSql("    AND CODITE = :CODITE");
 
+		sql.setNamedParameter("ENTIDADE", entityName);
 		sql.setNamedParameter("SEQUENCIA", item.getSequencia());
 		sql.setNamedParameter("CODOOS", item.getCodoos());
 		sql.setNamedParameter("CODITE", item.getCodite());
@@ -83,9 +85,9 @@ public class ItemDAO {
 	 * Método que busca e retorna a instância de um registro da tabela de itens
 	 * (TGFITE).
 	 * 
-	 * @param nunota Número único do registro do pedido do item a ser buscado.
-	 * @param sequencia Código da peça do Orçamento/Ordem de Serviço que será buscado
-	 *               no item.
+	 * @param nunota    Número único do registro do pedido do item a ser buscado.
+	 * @param sequencia Código da peça do Orçamento/Ordem de Serviço que será
+	 *                  buscado no item.
 	 * @return DynamicVO iteVO instância de um registro da tabela de itens (TGFITE).
 	 */
 	public static DynamicVO getItemVO(BigDecimal nunota, BigDecimal sequencia) {
@@ -99,6 +101,18 @@ public class ItemDAO {
 		}
 
 		return iteVO;
+	}
+
+	/**
+	 * Este método retorna o código do item de orçamento de acordo com o a entidade
+	 * alvo atual.
+	 * 
+	 * @param pecaVO     instância do item do orçamento.
+	 * @param entityName nome da entidade alvo atual.
+	 * @return BigDecimal código do item de orçamento.
+	 */
+	public static BigDecimal getCodite(DynamicVO pecaVO, String entityName) {
+		return entityName.equals("AD_OOSITE") ? pecaVO.asBigDecimal("CODITE") : pecaVO.asBigDecimal("CODITESERV");
 	}
 
 	/**
@@ -134,13 +148,14 @@ public class ItemDAO {
 
 		return profit;
 	}
-	
+
 	/**
 	 * Esse método busca o porcentual da margem de contribuição de um item.
 	 * 
 	 * @param jdbc   Conector do banco de dados.
 	 * @param pecaVO instância de uma peça.
-	 * @return o porcentual da margem de contribuição buscado pela função do banco de dados.
+	 * @return o porcentual da margem de contribuição buscado pela função do banco
+	 *         de dados.
 	 */
 	private static BigDecimal getContributionMargin(JdbcWrapper jdbc, DynamicVO pecaVO) {
 		NativeSql sql = new NativeSql(jdbc);
@@ -174,17 +189,24 @@ public class ItemDAO {
 	 * 
 	 * @param jdbc   Conector do banco de dados.
 	 * @param pecaVO instância de uma peça.
+	 * @param entityName nome da entidade alvo atual.
 	 */
-	public static void updateProfit(JdbcWrapper jdbc, DynamicVO pecaVO) {
+	public static void updateProfit(JdbcWrapper jdbc, DynamicVO pecaVO, String entityName) {
 		BigDecimal perlucro = getProfit(jdbc, pecaVO);
 		BigDecimal margcontrib = getContributionMargin(jdbc, pecaVO);
 
 		NativeSql sql = new NativeSql(jdbc);
 
-		sql.appendSql("UPDATE AD_OOSITE ");
-		sql.appendSql("SET PERLUCRO = :PERLUCRO, MARGCONTRIB = :MARGCONTRIB ");
-		sql.appendSql("WHERE CODOOS = :CODOOS AND CODITE = :CODITE");
+		sql.appendSql(" UPDATE ");
+		sql.appendSql("    :ENTIDADE ");
+		sql.appendSql(" SET ");
+		sql.appendSql("    PERLUCRO = :PERLUCRO, ");
+		sql.appendSql("    MARGCONTRIB = :MARGCONTRIB  ");
+		sql.appendSql(" WHERE  ");
+		sql.appendSql("    CODOOS = :CODOOS ");
+		sql.appendSql("    AND CODITE = :CODITE");
 
+		sql.setNamedParameter("ENTIDADE", entityName);
 		sql.setNamedParameter("PERLUCRO", perlucro);
 		sql.setNamedParameter("MARGCONTRIB", margcontrib);
 		sql.setNamedParameter("CODOOS", pecaVO.asBigDecimal("CODOOS"));

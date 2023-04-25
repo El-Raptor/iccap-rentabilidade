@@ -60,15 +60,18 @@ public class EventoItens implements EventoProgramavelJava {
 			if (oscabVO.asString("TIPOLANCAMENTO").equals("O")) {
 
 				/* Inicializando item */
-				Item item = Item.builder(pecaVO);
+				String entityName = ctx.getTargetDAO().getEntityName();
+				Item item = Item.builder(pecaVO, entityName);
 
 				DynamicVO itemVO = addItemOrder(cabVO, item);
 				item.setSequencia(itemVO.asBigDecimal("SEQUENCIA"));
 				
+
 				/* Vincula a sequência criada ao orçamento da OS. */
-				ItemDAO.setSequencia(jdbc, item);
-				ItemDAO.updateProfit(jdbc, pecaVO);
+				ItemDAO.setSequencia(jdbc, item, entityName);
+				ItemDAO.updateProfit(jdbc, pecaVO, entityName);
 				
+		
 			}
 
 		} catch (Exception e) {
@@ -91,7 +94,9 @@ public class EventoItens implements EventoProgramavelJava {
 			jdbc = dwfEntityFacade.getJdbcWrapper();
 			DynamicVO pecaVO = (DynamicVO) ctx.getVo();
 
-			Item item = Item.builder(pecaVO);
+			/* Incializando o item */
+			String entityName = ctx.getTargetDAO().getEntityName();
+			Item item = Item.builder(pecaVO, entityName);
 
 			DynamicVO oscabVO = NotaDAO.getCabOSVO(pecaVO.asBigDecimal("CODOOS"));
 			DynamicVO cabVO = NotaDAO.getCabVO(oscabVO.asBigDecimal("NUNOTA"));
@@ -99,7 +104,7 @@ public class EventoItens implements EventoProgramavelJava {
 
 			updateItemOrder(item, iteVO, cabVO);
 			
-			ItemDAO.updateProfit(jdbc, pecaVO);
+			ItemDAO.updateProfit(jdbc, pecaVO, entityName);
 
 		} catch (Exception e) {
 			e.printStackTrace();
