@@ -58,13 +58,13 @@ public class Rentabilidade implements EventoProgramavelJava {
 			if (nota.getTipolancamento().equals("O")) {
 
 				BigDecimal nunotaTemplate = NotaDAO.readNunotaTemplate(jdbc, nota);
+				DynamicVO novaCab = createNewOrder(nota, nunotaTemplate);
 
-				/*
-				 * if (tipolancamento.equals("O")) throw new Exception("Teste: " +
-				 * nunotaTemplate);
-				 */
+				/* Vincula o Nro. da Nota criada no orçamento da OS. */
+				NotaDAO.setNunota(jdbc, cabosVO.asBigDecimal("CODOOS"), novaCab.asBigDecimal("NUNOTA"));
 
-				createNewOrder(nota, nunotaTemplate);
+				//if (nota.getTipolancamento().equals("O"))
+				//	throw new Exception("Teste: " + novaCab.getPrimaryKey());
 
 			}
 		} catch (MGEModelException e) {
@@ -90,9 +90,11 @@ public class Rentabilidade implements EventoProgramavelJava {
 
 			DynamicVO cabosVO = (DynamicVO) ctx.getVo();
 			Nota orcamento = Nota.builder(cabosVO, jdbc, cabosVO.asBigDecimal("CODOOS"));
-			
-			/*if (orcamento != null)
-				throw new Exception("Orc: " + orcamento.getCodtipvenda());*/
+
+			/*
+			 * if (orcamento != null) throw new Exception("Orc: " +
+			 * orcamento.getCodtipvenda());
+			 */
 
 			updateProperty(orcamento);
 		} catch (MGEModelException e) {
@@ -132,7 +134,7 @@ public class Rentabilidade implements EventoProgramavelJava {
 	 *                       nota.
 	 * @param nunotaTemplate Número único da nota modelo.
 	 * @return DynamicVO instância do registro da nota recém criada.
-	 * @throws MGEModelException 
+	 * @throws MGEModelException
 	 * @throws Exception
 	 */
 	public static DynamicVO createNewOrder(Nota orcamento, BigDecimal nunotaTemplate) throws MGEModelException {
@@ -143,7 +145,7 @@ public class Rentabilidade implements EventoProgramavelJava {
 			final JapeWrapper tipoOperacaoDAO = JapeFactory.dao(DynamicEntityNames.TIPO_OPERACAO);
 
 			if (nunotaTemplate == null)
-				throw new Exception("Nota modelo não existe ou não foi cadastrada corretamente."
+				throw new Exception("Nota modelo não existe ou não foi definida corretamente."
 						+ " Crie um modelo de nota na tela Modelo de "
 						+ "Notas de Pedidos com o mesmo Tipo de Operação");
 
@@ -171,7 +173,6 @@ public class Rentabilidade implements EventoProgramavelJava {
 			cabTemplate.setProperty("CODVEND", orcamento.getCodvend());
 			cabTemplate.setProperty("VLRNOTA", orcamento.getVlrnota());
 			cabTemplate.setProperty("VLRDESCTOT", orcamento.getDesctot());
-			cabTemplate.setProperty("AD_CODOS", orcamento.getCodos());
 			cabTemplate.setProperty("TIPMOV", topDoModelo.asString("TIPMOV"));
 			cabTemplate.setProperty("CIF_FOB", "S");
 

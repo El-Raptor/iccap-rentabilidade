@@ -127,6 +127,34 @@ public class NotaDAO {
 	}
 
 	/**
+	 * Este método vincula o nro. da nota criada ao orçamento atual.
+	 * 
+	 * @param jdbc   Conector do banco de dados.
+	 * @param codoos Chave primária da tabela de orçamentos.
+	 * @param nunota Chave primária da tabela de pedidos.
+	 */
+	public static void setNunota(JdbcWrapper jdbc, BigDecimal codoos, BigDecimal nunota) {
+		NativeSql sql = new NativeSql(jdbc);
+
+		sql.appendSql(" UPDATE ");
+		sql.appendSql("    AD_OOSCAB");
+		sql.appendSql(" SET ");
+		sql.appendSql("    NUNOTA = :NUNOTA");
+		sql.appendSql(" WHERE");
+		sql.appendSql("    CODOOS = :CODOOS");
+
+		sql.setNamedParameter("NUNOTA", nunota);
+		sql.setNamedParameter("CODOOS", codoos);
+
+		try {
+			sql.executeUpdate();
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("Erro na execução da consulta SQL.");
+		}
+	}
+
+	/**
 	 * Essa classe busca o nunota de uma nota modelo.
 	 * 
 	 * @param jdbc Conector do banco de dados.
@@ -137,17 +165,20 @@ public class NotaDAO {
 		NativeSql sql = new NativeSql(jdbc);
 		BigDecimal nunotaTemplate = null;
 
-		sql.appendSql("SELECT NUNOTA ");
-		sql.appendSql("FROM TGFCAB ");
-		sql.appendSql("WHERE CODTIPOPER = :CODTIPOPER AND ROWNUM = 1 ");
-		sql.appendSql("ORDER BY DTNEG DESC");
-		sql.setNamedParameter("CODTIPOPER", nota.getCodtipoper());
+		sql.appendSql("SELECT  ");
+		sql.appendSql("    NUNOTAPEDIDO ");
+		sql.appendSql("FROM ");
+		sql.appendSql("    AD_MOTIVOABERT ");
+		sql.appendSql("WHERE ");
+		sql.appendSql("    CODMOTIVOABERT = :CODMOTIVOABERT ");
+
+		sql.setNamedParameter("CODMOTIVOABERT", nota.getCodmotivoabert());
 
 		ResultSet result;
 		try {
 			result = sql.executeQuery();
 			if (result.next())
-				nunotaTemplate = result.getBigDecimal("NUNOTA");
+				nunotaTemplate = result.getBigDecimal("NUNOTAPEDIDO");
 			result.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -156,7 +187,7 @@ public class NotaDAO {
 			e.printStackTrace();
 			System.out.println("Erro na execução da consulta SQL.");
 		}
-		
+
 		return nunotaTemplate;
 	}
 
@@ -169,15 +200,20 @@ public class NotaDAO {
 	 * @return o código do tipo de operação do orçamento.
 	 * @throws Exception
 	 */
+	@Deprecated
 	private static BigDecimal readCodtipoper(BigDecimal codmotivoabert, JdbcWrapper jdbc) throws Exception {
 		NativeSql sql = new NativeSql(jdbc);
 
-		sql.appendSql("SELECT M.CODTIPOPERORC ");
-		sql.appendSql("FROM AD_MOTIVOABERT M ");
-		sql.appendSql("JOIN TGFTOP T ON T.CODTIPOPER = M.CODTIPOPERORC ");
-		sql.appendSql("WHERE M.CODMOTIVOABERT = :CODMOTIVOABERT ");
-		sql.appendSql("AND ROWNUM = 1 ");
-		sql.appendSql("ORDER BY DHALTER DESC");
+		sql.appendSql(" SELECT ");
+		sql.appendSql("    M.CODTIPOPERORC ");
+		sql.appendSql(" FROM ");
+		sql.appendSql("    AD_MOTIVOABERT M ");
+		sql.appendSql("    JOIN TGFTOP T ON T.CODTIPOPER = M.CODTIPOPERORC");
+		sql.appendSql(" WHERE ");
+		sql.appendSql("    M.CODMOTIVOABERT = :CODMOTIVOABERT ");
+		sql.appendSql("    AND ROWNUM = 1 ");
+		sql.appendSql(" ORDER BY ");
+		sql.appendSql("    DHALTER DESC");
 
 		sql.setNamedParameter("CODMOTIVOABERT", codmotivoabert);
 
@@ -200,7 +236,7 @@ public class NotaDAO {
 			field = "CODTIPOPER";
 		else
 			field = "CODTIPVENDA";
-		
+
 		sql.appendSql("SELECT MAX(DHALTER) ");
 		sql.appendSql("FROM " + table);
 		sql.appendSql(" WHERE " + field + " = :FIELD ");
