@@ -41,10 +41,6 @@ public class Nota {
 		return NotaDAO.read(cabosVO, jdbc);
 	}
 
-	public static Nota builder(DynamicVO cabosVO, JdbcWrapper jdbc, BigDecimal codos) throws Exception {
-		return NotaDAO.readOrder(cabosVO, jdbc);
-	}
-
 	public void setTipolancamento(String tipolancamento) {
 		this.tipolancamento = tipolancamento;
 	}

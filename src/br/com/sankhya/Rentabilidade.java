@@ -57,14 +57,11 @@ public class Rentabilidade implements EventoProgramavelJava {
 
 			if (nota.getTipolancamento().equals("O")) {
 
-				BigDecimal nunotaTemplate = NotaDAO.readNunotaTemplate(jdbc, nota);
-				DynamicVO novaCab = createNewOrder(nota, nunotaTemplate);
+				DynamicVO novaCab = createNewOrder(nota);			
+				nota.setNunota(novaCab.asBigDecimal("NUNOTA"));
 
 				/* Vincula o Nro. da Nota criada no orçamento da OS. */
-				NotaDAO.setNunota(jdbc, cabosVO.asBigDecimal("CODOOS"), novaCab.asBigDecimal("NUNOTA"));
-
-				//if (nota.getTipolancamento().equals("O"))
-				//	throw new Exception("Teste: " + novaCab.getPrimaryKey());
+				NotaDAO.setNunota(jdbc, nota);
 
 			}
 		} catch (MGEModelException e) {
@@ -89,7 +86,7 @@ public class Rentabilidade implements EventoProgramavelJava {
 			jdbc = dwfEntityFacade.getJdbcWrapper();
 
 			DynamicVO cabosVO = (DynamicVO) ctx.getVo();
-			Nota orcamento = Nota.builder(cabosVO, jdbc, cabosVO.asBigDecimal("CODOOS"));
+			Nota orcamento = Nota.builder(cabosVO, jdbc);
 
 			updateProperty(orcamento);
 		} catch (MGEModelException e) {
@@ -124,7 +121,7 @@ public class Rentabilidade implements EventoProgramavelJava {
 	 * Por fim, o método invocará o método duplicate que irá duplicar essa instância
 	 * de registro.
 	 * 
-	 * @param orcamento      instância de uma nota com as propriedades que serão
+	 * @param cabos      instância de uma nota com as propriedades que serão
 	 *                       usadas para criar uma nova instância de registro da
 	 *                       nota.
 	 * @param nunotaTemplate Número único da nota modelo.
@@ -132,19 +129,19 @@ public class Rentabilidade implements EventoProgramavelJava {
 	 * @throws MGEModelException
 	 * @throws Exception
 	 */
-	public static DynamicVO createNewOrder(Nota orcamento, BigDecimal nunotaTemplate) throws MGEModelException {
+	public static DynamicVO createNewOrder(Nota cabos) throws MGEModelException {
 		DynamicVO novaNota = null;
 		try {
 
 			JapeWrapper cabDAO = JapeFactory.dao(DynamicEntityNames.CABECALHO_NOTA);
 			final JapeWrapper tipoOperacaoDAO = JapeFactory.dao(DynamicEntityNames.TIPO_OPERACAO);
 
-			if (nunotaTemplate == null)
+			if (cabos.getNunota() == null)
 				throw new Exception("Nota modelo não existe ou não foi definida corretamente."
 						+ " Crie um modelo de nota na tela Modelo de "
 						+ "Notas de Pedidos com o mesmo Tipo de Operação");
 
-			final DynamicVO cabTemplate = cabDAO.findByPK(nunotaTemplate);
+			final DynamicVO cabTemplate = cabDAO.findByPK(cabos.getNunota());
 
 			if (cabTemplate == null)
 				throw new Exception("Nota modelo não existe ou não foi cadastrada corretamente."
@@ -160,14 +157,14 @@ public class Rentabilidade implements EventoProgramavelJava {
 			cabTemplate.setProperty("NUMNOTA", new BigDecimal("0"));
 			cabTemplate.setProperty("DTNEG", TimeUtils.getNow());
 			cabTemplate.setProperty("DTENTSAI", TimeUtils.getNow());
-			cabTemplate.setProperty("CODEMP", orcamento.getCodemp());
-			cabTemplate.setProperty("CODPARC", orcamento.getCodparc());
-			cabTemplate.setProperty("OBSERVACAO", orcamento.getObservacao());
-			cabTemplate.setProperty("CODTIPVENDA", orcamento.getCodtipvenda());
-			cabTemplate.setProperty("CODUSU", orcamento.getCodusu());
-			cabTemplate.setProperty("CODVEND", orcamento.getCodvend());
-			cabTemplate.setProperty("VLRNOTA", orcamento.getVlrnota());
-			cabTemplate.setProperty("VLRDESCTOT", orcamento.getDesctot());
+			cabTemplate.setProperty("CODEMP", cabos.getCodemp());
+			cabTemplate.setProperty("CODPARC", cabos.getCodparc());
+			cabTemplate.setProperty("OBSERVACAO", cabos.getObservacao());
+			cabTemplate.setProperty("CODTIPVENDA", cabos.getCodtipvenda());
+			cabTemplate.setProperty("CODUSU", cabos.getCodusu());
+			cabTemplate.setProperty("CODVEND", cabos.getCodvend());
+			cabTemplate.setProperty("VLRNOTA", cabos.getVlrnota());
+			cabTemplate.setProperty("VLRDESCTOT", cabos.getDesctot());
 			cabTemplate.setProperty("TIPMOV", topDoModelo.asString("TIPMOV"));
 			cabTemplate.setProperty("CIF_FOB", "S");
 
