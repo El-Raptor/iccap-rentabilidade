@@ -91,11 +91,6 @@ public class Rentabilidade implements EventoProgramavelJava {
 			DynamicVO cabosVO = (DynamicVO) ctx.getVo();
 			Nota orcamento = Nota.builder(cabosVO, jdbc, cabosVO.asBigDecimal("CODOOS"));
 
-			/*
-			 * if (orcamento != null) throw new Exception("Orc: " +
-			 * orcamento.getCodtipvenda());
-			 */
-
 			updateProperty(orcamento);
 		} catch (MGEModelException e) {
 			e.printStackTrace();
@@ -245,7 +240,6 @@ public class Rentabilidade implements EventoProgramavelJava {
 			newVO.setProperty("CODVEND", nota.getCodvend());
 			newVO.setProperty("VLRNOTA", nota.getVlrnota());
 			newVO.setProperty("VLRDESCTOT", nota.getDesctot());
-			newVO.setProperty("AD_CODOS", nota.getCodos());
 			newVO.setProperty("CODTIPOPER", nota.getCodtipoper());
 			newVO.setProperty("DHTIPOPER", nota.getDhtipoper());
 			newVO.setProperty("DHTIPVENDA", nota.getDhtipvenda());
