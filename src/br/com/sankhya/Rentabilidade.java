@@ -140,7 +140,7 @@ public class Rentabilidade implements EventoProgramavelJava {
 			final JapeWrapper tipoOperacaoDAO = JapeFactory.dao(DynamicEntityNames.TIPO_OPERACAO);
 
 			if (nunotaTemplate == null)
-				throw new Exception("Nota modelo não existe ou não foi cadastrada corretamente."
+				throw new Exception("Nota modelo não existe ou não foi definida corretamente."
 						+ " Crie um modelo de nota na tela Modelo de "
 						+ "Notas de Pedidos com o mesmo Tipo de Operação");
 

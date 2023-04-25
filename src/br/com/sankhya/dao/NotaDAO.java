@@ -138,22 +138,19 @@ public class NotaDAO {
 		BigDecimal nunotaTemplate = null;
 
 		sql.appendSql("SELECT  ");
-		sql.appendSql("    NUNOTA ");
+		sql.appendSql("    NUNOTAPEDIDO ");
 		sql.appendSql("FROM ");
-		sql.appendSql("    TGFCAB ");
+		sql.appendSql("    AD_MOTIVOABERT ");
 		sql.appendSql("WHERE ");
-		sql.appendSql("    CODTIPOPER = :CODTIPOPER ");
-		sql.appendSql("    AND ROWNUM = 1 ");
-		sql.appendSql("ORDER BY ");
-		sql.appendSql("    DTNEG DESC ");
+		sql.appendSql("    CODMOTIVOABERT = :CODMOTIVOABERT ");
 		
-		sql.setNamedParameter("CODTIPOPER", nota.getCodtipoper());
+		sql.setNamedParameter("CODMOTIVOABERT", nota.getCodmotivoabert());
 
 		ResultSet result;
 		try {
 			result = sql.executeQuery();
 			if (result.next())
-				nunotaTemplate = result.getBigDecimal("NUNOTA");
+				nunotaTemplate = result.getBigDecimal("NUNOTAPEDIDO");
 			result.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -175,6 +172,7 @@ public class NotaDAO {
 	 * @return o código do tipo de operação do orçamento.
 	 * @throws Exception
 	 */
+	@Deprecated
 	private static BigDecimal readCodtipoper(BigDecimal codmotivoabert, JdbcWrapper jdbc) throws Exception {
 		NativeSql sql = new NativeSql(jdbc);
 
