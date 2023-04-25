@@ -27,25 +27,56 @@ public class ItemDAO {
 	 * Esse método obtém os dados de uma instância de registro de peça do orçamento
 	 * e os insere na instância da classe Item.
 	 * 
-	 * @param iteVO instância de registro de peça do orçamento;
+	 * @param pecaVO instância de registro de peça do orçamento;
 	 * @return Instância da classe Item.
 	 * @throws Exception
 	 */
-	public static Item read(DynamicVO iteVO) throws Exception {
+	public static Item read(DynamicVO pecaVO) throws Exception {
 		Item item = new Item();
 
-		item.setCodprod(iteVO.asBigDecimal("CODPROD"));
-		item.setCodite(iteVO.asBigDecimal("CODITE"));
+		item.setCodoos(pecaVO.asBigDecimal("CODOOS"));
+		item.setCodite(pecaVO.asBigDecimal("CODITE"));
+		item.setCodprod(pecaVO.asBigDecimal("CODPROD"));
 		item.setCodlocalorig(new BigDecimal(12004));
-		item.setPercdesc(iteVO.asBigDecimal("PERCDESC"));
-		item.setQtdneg(iteVO.asBigDecimal("QTD"));
-		item.setVlrtot(iteVO.asBigDecimal("VLRTOT"));
-		item.setVlracresc(coalesce(iteVO, "VLRACRESC"));
-		item.setVlrunit(coalesce(iteVO, "VLRUNIT"));
-		item.setVlrdesc(coalesce(iteVO, "VLRDESC"));
+		item.setPercdesc(pecaVO.asBigDecimal("PERCDESC"));
+		item.setQtdneg(pecaVO.asBigDecimal("QTD"));
+		item.setVlrtot(pecaVO.asBigDecimal("VLRTOT"));
+		item.setVlracresc(coalesce(pecaVO, "VLRACRESC"));
+		item.setVlrunit(coalesce(pecaVO, "VLRUNIT"));
+		item.setVlrdesc(coalesce(pecaVO, "VLRDESC"));
 		item.computedValues();
 
 		return item;
+	}
+	
+	/**
+	 * Este método vincula a sequência do item criado ao orçamento atual.
+	 * 
+	 * @param jdbc Conector do banco de dados.
+	 * @param item Entidade nota no qual possui as informações necessárias para a
+	 *             alteração.
+	 */
+	public static void setSequencia(JdbcWrapper jdbc, Item item) {
+		NativeSql sql = new NativeSql(jdbc);
+
+		sql.appendSql(" UPDATE ");
+		sql.appendSql("    AD_OOSITE");
+		sql.appendSql(" SET ");
+		sql.appendSql("    SEQUENCIA = :SEQUENCIA");
+		sql.appendSql(" WHERE");
+		sql.appendSql("    CODOOS = :CODOOS");
+		sql.appendSql("    AND CODITE = :CODITE");
+
+		sql.setNamedParameter("SEQUENCIA", item.getSequencia());
+		sql.setNamedParameter("CODOOS", item.getCodoos());
+		sql.setNamedParameter("CODITE", item.getCodite());
+
+		try {
+			sql.executeUpdate();
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("Erro na execução da consulta SQL.");
+		}
 	}
 
 	/**
@@ -57,6 +88,7 @@ public class ItemDAO {
 	 *               no item.
 	 * @return DynamicVO iteVO instância de um registro da tabela de itens (TGFITE).
 	 */
+	@Deprecated
 	public static DynamicVO getItemVO(BigDecimal nunota, BigDecimal codite) {
 		JapeWrapper iteDAO = JapeFactory.dao(DynamicEntityNames.ITEM_NOTA);
 		DynamicVO iteVO = null;
