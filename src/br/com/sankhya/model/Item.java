@@ -14,6 +14,9 @@ import br.com.sankhya.jape.vo.DynamicVO;
  * 
  */
 public class Item {
+	private BigDecimal codoos;
+	private BigDecimal codite;
+	private BigDecimal sequencia;
 	private BigDecimal codprod;
 	private BigDecimal codlocalorig;
 	private BigDecimal qtdneg;
@@ -22,7 +25,6 @@ public class Item {
 	private BigDecimal vlrunit;
 	private BigDecimal vlrtot;
 	private BigDecimal vlracresc;
-	private BigDecimal codite;
 	private String usoprod;
 	private String codvol;
 
@@ -127,5 +129,23 @@ public class Item {
 	public void setCodite(BigDecimal codite) {
 		this.codite = codite;
 	}
+
+	public BigDecimal getCodoos() {
+		return codoos;
+	}
+
+	public void setCodoos(BigDecimal codoos) {
+		this.codoos = codoos;
+	}
+
+	public BigDecimal getSequencia() {
+		return sequencia;
+	}
+
+	public void setSequencia(BigDecimal sequencia) {
+		this.sequencia = sequencia;
+	}
+	
+	
 
 }

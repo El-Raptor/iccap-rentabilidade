@@ -55,15 +55,20 @@ public class EventoItens implements EventoProgramavelJava {
 			BigDecimal codoos = pecaVO.asBigDecimal("CODOOS");
 
 			DynamicVO oscabVO = NotaDAO.getCabOSVO(codoos);
-			DynamicVO cabVO = NotaDAO.getCabVO(codoos);
+			DynamicVO cabVO = NotaDAO.getCabVO(oscabVO.asBigDecimal("NUNOTA"));
 
 			if (oscabVO.asString("TIPOLANCAMENTO").equals("O")) {
 
 				/* Inicializando item */
 				Item item = Item.builder(pecaVO);
 
-				addItemOrder(cabVO, item);
+				DynamicVO itemVO = addItemOrder(cabVO, item);
+				item.setSequencia(itemVO.asBigDecimal("SEQUENCIA"));
+				
+				/* Vincula o Nro. da Nota criada no orçamento da OS. */
+				ItemDAO.setSequencia(jdbc, item);
 				ItemDAO.updateProfit(jdbc, pecaVO);
+				
 			}
 
 		} catch (Exception e) {
@@ -88,9 +93,8 @@ public class EventoItens implements EventoProgramavelJava {
 
 			Item item = Item.builder(pecaVO);
 
-			BigDecimal codoos = pecaVO.asBigDecimal("CODOOS");
-
-			DynamicVO cabVO = NotaDAO.getCabVO(codoos);
+			DynamicVO oscabVO = NotaDAO.getCabOSVO(pecaVO.asBigDecimal("CODOOS"));
+			DynamicVO cabVO = NotaDAO.getCabVO(oscabVO.asBigDecimal("NUNOTA"));
 			DynamicVO iteVO = ItemDAO.getItemVO(cabVO.asBigDecimal("NUNOTA"), pecaVO.asBigDecimal("CODITE"));
 
 			updateItemOrder(item, iteVO, cabVO);
@@ -134,7 +138,7 @@ public class EventoItens implements EventoProgramavelJava {
 	 * @param item A instância do registro da tabela de itens (TGFITE).
 	 * @throws Exception
 	 */
-	private void addItemOrder(DynamicVO nota, Item item) throws Exception {
+	private DynamicVO addItemOrder(DynamicVO nota, Item item) throws Exception {
 		Collection<PrePersistEntityState> itensNota = new ArrayList<PrePersistEntityState>();
 		AuthenticationInfo authInfo = AuthenticationInfo.getCurrent();
 
@@ -158,7 +162,6 @@ public class EventoItens implements EventoProgramavelJava {
 		itemVO.setProperty("VLRDESC", item.getVlrdesc());
 		itemVO.setProperty("VLRUNIT", item.getVlrunit());
 		itemVO.setProperty("VLRTOT", item.getVlrtot());
-		itemVO.setProperty("AD_CODITE", item.getCodite());
 
 		PrePersistEntityState itemMontado = PrePersistEntityState.build(dwfFacade, DynamicEntityNames.ITEM_NOTA,
 				itemVO);
@@ -169,7 +172,7 @@ public class EventoItens implements EventoProgramavelJava {
 
 		sistema.incluirAlterarItem(nota.asBigDecimal("NUNOTA"), authInfo, itensNota, true);
 
-		updateItemOrder(item, itemVO, nota);
+		return updateItemOrder(item, itemVO, nota);
 
 	}
 
@@ -183,7 +186,7 @@ public class EventoItens implements EventoProgramavelJava {
 	 *               alterado.
 	 * @throws Exception
 	 */
-	private static void updateItemOrder(Item item, DynamicVO itemVO, DynamicVO cabVO) throws Exception {
+	private static DynamicVO updateItemOrder(Item item, DynamicVO itemVO, DynamicVO cabVO) throws Exception {
 		// Variáveis do sistema nos quais permitem recalcular o financeiro
 		JapeSessionContext.putProperty("br.com.sankhya.com.CentralCompraVenda", Boolean.TRUE);
 		JapeSessionContext.putProperty("ItemNota.incluindo.alterando.pela.central", Boolean.TRUE);
@@ -207,6 +210,8 @@ public class EventoItens implements EventoProgramavelJava {
 
 		CACHelper cacHelper = new CACHelper();
 		cacHelper.incluirAlterarItem(cabVO.asBigDecimal("NUNOTA"), service, null, false, itensFatura);
+		
+		return itemVO;
 	}
 
 	/**

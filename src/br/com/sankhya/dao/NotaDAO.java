@@ -68,12 +68,11 @@ public class NotaDAO {
 	 *               pedido.
 	 * @return DynamicVO cabVO instância do registro da Nota.
 	 */
-	@Deprecated
-	public static DynamicVO getCabVO(BigDecimal codoos) {
+	public static DynamicVO getCabVO(BigDecimal nunota) {
 		JapeWrapper cabDAO = JapeFactory.dao(DynamicEntityNames.CABECALHO_NOTA);
 		DynamicVO cabVO = null;
 		try {
-			cabVO = cabDAO.findOne(" AD_CODOS = " + codoos + " AND TIPMOV = 'P'");
+			cabVO = cabDAO.findByPK(nunota);
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.out.println("Erro na pesquisa do registro da nota.");
