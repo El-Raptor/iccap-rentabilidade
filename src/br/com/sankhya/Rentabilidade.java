@@ -59,9 +59,12 @@ public class Rentabilidade implements EventoProgramavelJava {
 
 				BigDecimal nunotaTemplate = NotaDAO.readNunotaTemplate(jdbc, nota);
 				DynamicVO novaCab = createNewOrder(nota, nunotaTemplate);
-				
+
 				/* Vincula o Nro. da Nota criada no orçamento da OS. */
-				cabosVO.setProperty("NUNOTA", novaCab.getPrimaryKey());
+				NotaDAO.setNunota(jdbc, cabosVO.asBigDecimal("CODOOS"), novaCab.asBigDecimal("NUNOTA"));
+
+				//if (nota.getTipolancamento().equals("O"))
+				//	throw new Exception("Teste: " + novaCab.getPrimaryKey());
 
 			}
 		} catch (MGEModelException e) {
@@ -87,9 +90,11 @@ public class Rentabilidade implements EventoProgramavelJava {
 
 			DynamicVO cabosVO = (DynamicVO) ctx.getVo();
 			Nota orcamento = Nota.builder(cabosVO, jdbc, cabosVO.asBigDecimal("CODOOS"));
-			
-			/*if (orcamento != null)
-				throw new Exception("Orc: " + orcamento.getCodtipvenda());*/
+
+			/*
+			 * if (orcamento != null) throw new Exception("Orc: " +
+			 * orcamento.getCodtipvenda());
+			 */
 
 			updateProperty(orcamento);
 		} catch (MGEModelException e) {
@@ -129,7 +134,7 @@ public class Rentabilidade implements EventoProgramavelJava {
 	 *                       nota.
 	 * @param nunotaTemplate Número único da nota modelo.
 	 * @return DynamicVO instância do registro da nota recém criada.
-	 * @throws MGEModelException 
+	 * @throws MGEModelException
 	 * @throws Exception
 	 */
 	public static DynamicVO createNewOrder(Nota orcamento, BigDecimal nunotaTemplate) throws MGEModelException {

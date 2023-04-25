@@ -127,6 +127,34 @@ public class NotaDAO {
 	}
 
 	/**
+	 * Este método vincula o nro. da nota criada ao orçamento atual.
+	 * 
+	 * @param jdbc   Conector do banco de dados.
+	 * @param codoos Chave primária da tabela de orçamentos.
+	 * @param nunota Chave primária da tabela de pedidos.
+	 */
+	public static void setNunota(JdbcWrapper jdbc, BigDecimal codoos, BigDecimal nunota) {
+		NativeSql sql = new NativeSql(jdbc);
+
+		sql.appendSql(" UPDATE ");
+		sql.appendSql("    AD_OOSCAB");
+		sql.appendSql(" SET ");
+		sql.appendSql("    NUNOTA = :NUNOTA");
+		sql.appendSql(" WHERE");
+		sql.appendSql("    CODOOS = :CODOOS");
+
+		sql.setNamedParameter("NUNOTA", nunota);
+		sql.setNamedParameter("CODOOS", codoos);
+
+		try {
+			sql.executeUpdate();
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("Erro na execução da consulta SQL.");
+		}
+	}
+
+	/**
 	 * Essa classe busca o nunota de uma nota modelo.
 	 * 
 	 * @param jdbc Conector do banco de dados.
@@ -143,7 +171,7 @@ public class NotaDAO {
 		sql.appendSql("    AD_MOTIVOABERT ");
 		sql.appendSql("WHERE ");
 		sql.appendSql("    CODMOTIVOABERT = :CODMOTIVOABERT ");
-		
+
 		sql.setNamedParameter("CODMOTIVOABERT", nota.getCodmotivoabert());
 
 		ResultSet result;
@@ -159,7 +187,7 @@ public class NotaDAO {
 			e.printStackTrace();
 			System.out.println("Erro na execução da consulta SQL.");
 		}
-		
+
 		return nunotaTemplate;
 	}
 
@@ -208,7 +236,7 @@ public class NotaDAO {
 			field = "CODTIPOPER";
 		else
 			field = "CODTIPVENDA";
-		
+
 		sql.appendSql("SELECT MAX(DHALTER) ");
 		sql.appendSql("FROM " + table);
 		sql.appendSql(" WHERE " + field + " = :FIELD ");
