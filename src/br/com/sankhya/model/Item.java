@@ -32,8 +32,8 @@ public class Item {
 
 	}
 
-	public static Item builder(DynamicVO iteVO) throws Exception {
-		return ItemDAO.read(iteVO);
+	public static Item builder(DynamicVO iteVO, String entityName) throws Exception {
+		return ItemDAO.read(iteVO, entityName);
 	}
 
 	public void computedValues() {
