@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 
 import br.com.sankhya.jape.dao.JdbcWrapper;
 import br.com.sankhya.jape.sql.NativeSql;
@@ -37,8 +38,9 @@ public class NotaDAO {
 
 		Nota nota = new Nota();
 
-		nota.setCodemp(cabosVO.asBigDecimal("CODEMP"));
 		nota.setCodos(cabosVO.asBigDecimal("CODOOS"));
+		nota.setNunota(getNunota(cabosVO, jdbc));
+		nota.setCodemp(cabosVO.asBigDecimal("CODEMP"));
 		nota.setCodparc(cabosVO.asBigDecimal("CODPARC"));
 		nota.setCodtipvenda(cabosVO.asBigDecimal("CODTIPVENDA"));
 		nota.setCodusu(cabosVO.asBigDecimal("CODUSU"));
@@ -48,39 +50,12 @@ public class NotaDAO {
 		nota.setVlrnota(cabosVO.asBigDecimal("VLRTOTGERAL"));
 		nota.setDesctot(cabosVO.asBigDecimal("DESCTOTAL"));
 		nota.setCodmotivoabert(cabosVO.asBigDecimal("CODMOTIVOABERT"));
-		nota.setCodtipoper(readCodtipoper(nota.getCodmotivoabert(), jdbc));
-
-		return nota;
-	}
-
-	/**
-	 * Lê e busca um registro da tabela AD_CADOOS e alimenta os dados em uma
-	 * instância de Nota com um NUNOTA.
-	 * 
-	 * @param cabosVO Instância do registro de orçamento.
-	 * @param jdbc    Conector do banco de dados.
-	 * @return Nota uma instância de nota.
-	 * @throws Exception
-	 */
-	public static Nota readOrder(DynamicVO cabosVO, JdbcWrapper jdbc) throws Exception {
-
-		Nota nota = new Nota();
-
-		nota.setCodemp(cabosVO.asBigDecimal("CODEMP"));
-		nota.setCodos(cabosVO.asBigDecimal("CODOOS"));
-		nota.setCodparc(cabosVO.asBigDecimal("CODPARC"));
-		nota.setCodtipvenda(cabosVO.asBigDecimal("CODTIPVENDA"));
-		nota.setCodusu(cabosVO.asBigDecimal("CODUSU"));
-		nota.setCodvend(cabosVO.asBigDecimal("CODVEND"));
-		nota.setTipolancamento(cabosVO.asString("TIPOLANCAMENTO"));
-		nota.setObservacao(cabosVO.asString("OBSERVACAO"));
-		nota.setVlrnota(cabosVO.asBigDecimal("VLRTOTGERAL"));
-		nota.setDesctot(cabosVO.asBigDecimal("DESCTOTAL"));
-		nota.setCodmotivoabert(cabosVO.asBigDecimal("CODMOTIVOABERT"));
-		nota.setCodtipoper(readCodtipoper(nota.getCodmotivoabert(), jdbc));
-		nota.setNunota(getCabVO(cabosVO.asBigDecimal("CODOOS")).asBigDecimal("NUNOTA"));
-		nota.setDhtipoper(readLastDate(nota.getCodtipoper(), "TGFTOP", jdbc));
-		nota.setDhtipvenda(readLastDate(nota.getCodtipvenda(), "TGFTPV", jdbc));
+		
+		ArrayList<Object> attributes = getOperVenda(nota.getNunota(), jdbc);
+		
+		nota.setCodtipoper((BigDecimal)attributes.get(0));
+		nota.setDhtipoper((Timestamp)attributes.get(2));
+		nota.setDhtipvenda((Timestamp)attributes.get(3));
 
 		return nota;
 	}
@@ -93,6 +68,7 @@ public class NotaDAO {
 	 *               pedido.
 	 * @return DynamicVO cabVO instância do registro da Nota.
 	 */
+	@Deprecated
 	public static DynamicVO getCabVO(BigDecimal codoos) {
 		JapeWrapper cabDAO = JapeFactory.dao(DynamicEntityNames.CABECALHO_NOTA);
 		DynamicVO cabVO = null;
@@ -104,6 +80,11 @@ public class NotaDAO {
 		}
 
 		return cabVO;
+	}
+
+	private static BigDecimal getNunota(DynamicVO cabosVO, JdbcWrapper jdbc) {
+		return cabosVO.asBigDecimal("NUNOTA") == null ? getNunotaTemplate(jdbc, cabosVO)
+				: cabosVO.asBigDecimal("NUNOTA");
 	}
 
 	/**
@@ -129,11 +110,11 @@ public class NotaDAO {
 	/**
 	 * Este método vincula o nro. da nota criada ao orçamento atual.
 	 * 
-	 * @param jdbc   Conector do banco de dados.
-	 * @param codoos Chave primária da tabela de orçamentos.
-	 * @param nunota Chave primária da tabela de pedidos.
+	 * @param jdbc Conector do banco de dados.
+	 * @param nota Entidade nota no qual possui as informações necessárias para a
+	 *             alteração.
 	 */
-	public static void setNunota(JdbcWrapper jdbc, BigDecimal codoos, BigDecimal nunota) {
+	public static void setNunota(JdbcWrapper jdbc, Nota nota) {
 		NativeSql sql = new NativeSql(jdbc);
 
 		sql.appendSql(" UPDATE ");
@@ -143,8 +124,8 @@ public class NotaDAO {
 		sql.appendSql(" WHERE");
 		sql.appendSql("    CODOOS = :CODOOS");
 
-		sql.setNamedParameter("NUNOTA", nunota);
-		sql.setNamedParameter("CODOOS", codoos);
+		sql.setNamedParameter("NUNOTA", nota.getNunota());
+		sql.setNamedParameter("CODOOS", nota.getCodos());
 
 		try {
 			sql.executeUpdate();
@@ -161,7 +142,7 @@ public class NotaDAO {
 	 * @param nota instância de uma nota
 	 * @return o NUNOTA de uma nota modelo.
 	 */
-	public static BigDecimal readNunotaTemplate(JdbcWrapper jdbc, Nota nota) {
+	public static BigDecimal getNunotaTemplate(JdbcWrapper jdbc, DynamicVO cabosVO) {
 		NativeSql sql = new NativeSql(jdbc);
 		BigDecimal nunotaTemplate = null;
 
@@ -172,7 +153,7 @@ public class NotaDAO {
 		sql.appendSql("WHERE ");
 		sql.appendSql("    CODMOTIVOABERT = :CODMOTIVOABERT ");
 
-		sql.setNamedParameter("CODMOTIVOABERT", nota.getCodmotivoabert());
+		sql.setNamedParameter("CODMOTIVOABERT", cabosVO.asBigDecimal("CODMOTIVOABERT"));
 
 		ResultSet result;
 		try {
@@ -192,65 +173,42 @@ public class NotaDAO {
 	}
 
 	/**
-	 * Busca o código do tipo de operação de um orçamento de acordo com o seu motivo
-	 * de abertura.
+	 * Busca os códigos e datas do tipo de operação e do tipo de venda de um
+	 * orçamento.
 	 * 
-	 * @param codmotivoabert código do motivo de abertura.
-	 * @param jdbc           Conector do banco de dados.
-	 * @return o código do tipo de operação do orçamento.
+	 * @param nunota código do motivo de abertura.
+	 * @param jdbc   Conector do banco de dados.
+	 * @return os códigos de datas do tipo de operação e venda do orçamento.
 	 * @throws Exception
 	 */
-	@Deprecated
-	private static BigDecimal readCodtipoper(BigDecimal codmotivoabert, JdbcWrapper jdbc) throws Exception {
+	private static ArrayList<Object> getOperVenda(BigDecimal nunota, JdbcWrapper jdbc) throws Exception {
+		ArrayList<Object> list = new ArrayList<>();
 		NativeSql sql = new NativeSql(jdbc);
 
 		sql.appendSql(" SELECT ");
-		sql.appendSql("    M.CODTIPOPERORC ");
+		sql.appendSql("    CODTIPOPER, ");
+		sql.appendSql("    DHTIPOPER, ");
+		sql.appendSql("    CODTIPVENDA, ");
+		sql.appendSql("    DHTIPVENDA ");
 		sql.appendSql(" FROM ");
-		sql.appendSql("    AD_MOTIVOABERT M ");
-		sql.appendSql("    JOIN TGFTOP T ON T.CODTIPOPER = M.CODTIPOPERORC");
+		sql.appendSql("    TGFCAB");
 		sql.appendSql(" WHERE ");
-		sql.appendSql("    M.CODMOTIVOABERT = :CODMOTIVOABERT ");
-		sql.appendSql("    AND ROWNUM = 1 ");
-		sql.appendSql(" ORDER BY ");
-		sql.appendSql("    DHALTER DESC");
+		sql.appendSql("    NUNOTA = :NUNOTA ");
 
-		sql.setNamedParameter("CODMOTIVOABERT", codmotivoabert);
+		sql.setNamedParameter("NUNOTA", nunota);
 
 		ResultSet result = sql.executeQuery();
 
-		if (result.next())
-			return result.getBigDecimal("CODTIPOPERORC");
+		if (result.next()) {
+			list.add(result.getBigDecimal("CODTIPOPER"));
+			list.add(result.getBigDecimal("CODTIPVENDA"));
+			list.add(result.getTimestamp("DHTIPOPER"));
+			list.add(result.getTimestamp("DHTIPVENDA"));
+		}
 
 		result.close();
 
-		return BigDecimal.ZERO;
-
-	}
-
-	private static Timestamp readLastDate(BigDecimal fieldValue, String table, JdbcWrapper jdbc) throws Exception {
-		NativeSql sql = new NativeSql(jdbc);
-		String field = "";
-
-		if (table.equals("TGFTOP"))
-			field = "CODTIPOPER";
-		else
-			field = "CODTIPVENDA";
-
-		sql.appendSql("SELECT MAX(DHALTER) ");
-		sql.appendSql("FROM " + table);
-		sql.appendSql(" WHERE " + field + " = :FIELD ");
-
-		sql.setNamedParameter("FIELD", fieldValue);
-
-		ResultSet result = sql.executeQuery();
-
-		if (result.next())
-			return result.getTimestamp(1);
-
-		result.close();
-
-		return null;
+		return list;
 
 	}
 }
