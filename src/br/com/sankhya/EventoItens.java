@@ -95,7 +95,7 @@ public class EventoItens implements EventoProgramavelJava {
 
 			DynamicVO oscabVO = NotaDAO.getCabOSVO(pecaVO.asBigDecimal("CODOOS"));
 			DynamicVO cabVO = NotaDAO.getCabVO(oscabVO.asBigDecimal("NUNOTA"));
-			DynamicVO iteVO = ItemDAO.getItemVO(cabVO.asBigDecimal("NUNOTA"), pecaVO.asBigDecimal("CODITE"));
+			DynamicVO iteVO = ItemDAO.getItemVO(cabVO.asBigDecimal("NUNOTA"), pecaVO.asBigDecimal("SEQUENCIA"));
 
 			updateItemOrder(item, iteVO, cabVO);
 			
@@ -119,8 +119,9 @@ public class EventoItens implements EventoProgramavelJava {
 			DynamicVO pecaVO = (DynamicVO) ctx.getVo();
 			hnd = JapeSession.open();
 
-			DynamicVO cabVO = NotaDAO.getCabVO(pecaVO.asBigDecimal("CODOOS"));
-			DynamicVO itemVO = ItemDAO.getItemVO(cabVO.asBigDecimal("NUNOTA"), pecaVO.asBigDecimal("CODITE"));
+			DynamicVO oscabVO = NotaDAO.getCabOSVO(pecaVO.asBigDecimal("CODOOS"));
+			DynamicVO cabVO = NotaDAO.getCabVO(oscabVO.asBigDecimal("NUNOTA"));
+			DynamicVO itemVO = ItemDAO.getItemVO(cabVO.asBigDecimal("NUNOTA"), pecaVO.asBigDecimal("SEQUENCIA"));
 
 			deleteItem(itemVO);
 

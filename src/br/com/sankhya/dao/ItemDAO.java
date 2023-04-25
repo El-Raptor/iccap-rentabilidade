@@ -84,16 +84,15 @@ public class ItemDAO {
 	 * (TGFITE).
 	 * 
 	 * @param nunota Número único do registro do pedido do item a ser buscado.
-	 * @param codite Código da peça do Orçamento/Ordem de Serviço que será buscado
+	 * @param sequencia Código da peça do Orçamento/Ordem de Serviço que será buscado
 	 *               no item.
 	 * @return DynamicVO iteVO instância de um registro da tabela de itens (TGFITE).
 	 */
-	@Deprecated
-	public static DynamicVO getItemVO(BigDecimal nunota, BigDecimal codite) {
+	public static DynamicVO getItemVO(BigDecimal nunota, BigDecimal sequencia) {
 		JapeWrapper iteDAO = JapeFactory.dao(DynamicEntityNames.ITEM_NOTA);
 		DynamicVO iteVO = null;
 		try {
-			iteVO = iteDAO.findOne(" NUNOTA = " + nunota + " AND AD_CODITE = " + codite);
+			iteVO = iteDAO.findOne(" NUNOTA = " + nunota + " AND SEQUENCIA = " + sequencia);
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.out.println("Erro na pesquisa do registro do item.");
