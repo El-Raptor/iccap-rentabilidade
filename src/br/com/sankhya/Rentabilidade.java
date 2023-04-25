@@ -58,13 +58,10 @@ public class Rentabilidade implements EventoProgramavelJava {
 			if (nota.getTipolancamento().equals("O")) {
 
 				BigDecimal nunotaTemplate = NotaDAO.readNunotaTemplate(jdbc, nota);
-
-				/*
-				 * if (tipolancamento.equals("O")) throw new Exception("Teste: " +
-				 * nunotaTemplate);
-				 */
-
-				createNewOrder(nota, nunotaTemplate);
+				DynamicVO novaCab = createNewOrder(nota, nunotaTemplate);
+				
+				/* Vincula o Nro. da Nota criada no orçamento da OS. */
+				cabosVO.setProperty("NUNOTA", novaCab.getPrimaryKey());
 
 			}
 		} catch (MGEModelException e) {
@@ -171,7 +168,6 @@ public class Rentabilidade implements EventoProgramavelJava {
 			cabTemplate.setProperty("CODVEND", orcamento.getCodvend());
 			cabTemplate.setProperty("VLRNOTA", orcamento.getVlrnota());
 			cabTemplate.setProperty("VLRDESCTOT", orcamento.getDesctot());
-			cabTemplate.setProperty("AD_CODOS", orcamento.getCodos());
 			cabTemplate.setProperty("TIPMOV", topDoModelo.asString("TIPMOV"));
 			cabTemplate.setProperty("CIF_FOB", "S");
 

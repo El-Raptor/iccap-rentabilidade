@@ -137,10 +137,16 @@ public class NotaDAO {
 		NativeSql sql = new NativeSql(jdbc);
 		BigDecimal nunotaTemplate = null;
 
-		sql.appendSql("SELECT NUNOTA ");
-		sql.appendSql("FROM TGFCAB ");
-		sql.appendSql("WHERE CODTIPOPER = :CODTIPOPER AND ROWNUM = 1 ");
-		sql.appendSql("ORDER BY DTNEG DESC");
+		sql.appendSql("SELECT  ");
+		sql.appendSql("    NUNOTA ");
+		sql.appendSql("FROM ");
+		sql.appendSql("    TGFCAB ");
+		sql.appendSql("WHERE ");
+		sql.appendSql("    CODTIPOPER = :CODTIPOPER ");
+		sql.appendSql("    AND ROWNUM = 1 ");
+		sql.appendSql("ORDER BY ");
+		sql.appendSql("    DTNEG DESC ");
+		
 		sql.setNamedParameter("CODTIPOPER", nota.getCodtipoper());
 
 		ResultSet result;
@@ -172,12 +178,16 @@ public class NotaDAO {
 	private static BigDecimal readCodtipoper(BigDecimal codmotivoabert, JdbcWrapper jdbc) throws Exception {
 		NativeSql sql = new NativeSql(jdbc);
 
-		sql.appendSql("SELECT M.CODTIPOPERORC ");
-		sql.appendSql("FROM AD_MOTIVOABERT M ");
-		sql.appendSql("JOIN TGFTOP T ON T.CODTIPOPER = M.CODTIPOPERORC ");
-		sql.appendSql("WHERE M.CODMOTIVOABERT = :CODMOTIVOABERT ");
-		sql.appendSql("AND ROWNUM = 1 ");
-		sql.appendSql("ORDER BY DHALTER DESC");
+		sql.appendSql(" SELECT ");
+		sql.appendSql("    M.CODTIPOPERORC ");
+		sql.appendSql(" FROM ");
+		sql.appendSql("    AD_MOTIVOABERT M ");
+		sql.appendSql("    JOIN TGFTOP T ON T.CODTIPOPER = M.CODTIPOPERORC");
+		sql.appendSql(" WHERE ");
+		sql.appendSql("    M.CODMOTIVOABERT = :CODMOTIVOABERT ");
+		sql.appendSql("    AND ROWNUM = 1 ");
+		sql.appendSql(" ORDER BY ");
+		sql.appendSql("    DHALTER DESC");
 
 		sql.setNamedParameter("CODMOTIVOABERT", codmotivoabert);
 
